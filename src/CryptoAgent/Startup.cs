@@ -1,4 +1,4 @@
-using Bit.CryptoAgent.Repositories;
+﻿using Bit.CryptoAgent.Repositories;
 using Bit.CryptoAgent.Services;
 using JsonFlatFileDataStore;
 using Microsoft.AspNetCore.Builder;
@@ -64,6 +64,28 @@ namespace Bit.CryptoAgent
                 else
                 {
                     throw new Exception("No azure key vault configured.");
+                }
+            }
+            else if (rsaKeyProvider == "gcp")
+            {
+                if (!string.IsNullOrWhiteSpace(settings.RsaKey?.GoogleCloudKeyId))
+                {
+                    services.AddSingleton<IRsaKeyService, GoogleCloudKmsRsaKeyService>();
+                }
+                else
+                {
+                    throw new Exception("No gcp kms configured.");
+                }
+            }
+            else if (rsaKeyProvider == "aws")
+            {
+                if (!string.IsNullOrWhiteSpace(settings.RsaKey?.AwsAccessKeyId))
+                {
+                    services.AddSingleton<IRsaKeyService, AwsKmsRsaKeyService>();
+                }
+                else
+                {
+                    throw new Exception("No aws kms configured.");
                 }
             }
             else
