@@ -36,7 +36,12 @@
             public string AzureKeyvaultAdTenantId { get; set; }
             public string AzureKeyvaultAdAppId { get; set; }
             public string AzureKeyvaultAdSecret { get; set; }
-            // GCP...
+            // Google Cloud KMS
+            public string GoogleCloudProjectId { get; set; }
+            public string GoogleCloudLocationId { get; set; }
+            public string GoogleCloudKeyringId { get; set; }
+            public string GoogleCloudKeyId { get; set; }
+            public string GoogleCloudKeyVersionId { get; set; }
             // AWS...
             // Hashicorp Vault...
             // Other HSMs...
