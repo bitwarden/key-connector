@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Bit.CryptoAgent</RootNamespace>
+    <UserSecretsId>116f49e5-0b50-4080-856f-7e812413e723</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.4.1" />
+    <PackageReference Include="Azure.Security.KeyVault.Certificates" Version="4.2.0" />
+    <PackageReference Include="Azure.Security.KeyVault.Keys" Version="4.2.0" />
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.2.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.9.1" />
+    <PackageReference Include="JsonFlatFileDataStore" Version="2.2.3" />
+  </ItemGroup>
+
+</Project>
