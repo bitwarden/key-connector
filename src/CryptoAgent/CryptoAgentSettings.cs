@@ -42,7 +42,11 @@
             public string GoogleCloudKeyringId { get; set; }
             public string GoogleCloudKeyId { get; set; }
             public string GoogleCloudKeyVersionId { get; set; }
-            // AWS...
+            // AWS KMS
+            public string AwsAccessKeyId { get; set; }
+            public string AwsAccessKeySecret { get; set; }
+            public string AwsRegion { get; set; }
+            public string AwsKeyId { get; set; }
             // Hashicorp Vault...
             // Other HSMs...
         }
