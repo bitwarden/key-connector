@@ -29,7 +29,8 @@ namespace Bit.CryptoAgent.Services
             var endDataLength = data.Length - AesGcm.TagByteSizes.MaxSize - AesGcm.NonceByteSizes.MaxSize;
             var encData = new ArraySegment<byte>(data, 0, endDataLength);
             var tag = new ArraySegment<byte>(data, endDataLength, AesGcm.TagByteSizes.MaxSize);
-            var iv = new ArraySegment<byte>(data, endDataLength + AesGcm.TagByteSizes.MaxSize, AesGcm.NonceByteSizes.MaxSize);
+            var iv = new ArraySegment<byte>(data, endDataLength + AesGcm.TagByteSizes.MaxSize,
+                AesGcm.NonceByteSizes.MaxSize);
             var plainData = new byte[endDataLength];
 
             aes.Decrypt(iv, encData, tag, plainData);
