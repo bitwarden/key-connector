@@ -8,17 +8,18 @@
 
         public class CertificateSettings
         {
-            // Filesystem
+            public string Provider { get; set; }
+            // filesystem
             public string FilesystemPath { get; set; }
             public string FilesystemPassword { get; set; }
-            // Local store
+            // store
             public string StoreThumbprint { get; set; }
-            // Azure blob storage
+            // azurestorage
             public string AzureStorageConnectionString { get; set; }
             public string AzureStorageContainer { get; set; }
             public string AzureStorageFileName { get; set; }
             public string AzureStorageFilePassword { get; set; }
-            // Azure key vault
+            // azurekv
             public string AzureKeyvaultUri { get; set; }
             public string AzureKeyvaultCertificateName { get; set; }
             public string AzureKeyvaultAdTenantId { get; set; }
@@ -28,26 +29,25 @@
 
         public class RsaKeySettings
         {
-            // Local certificate provider
             public string Provider { get; set; }
-            // Azure key vault
+            // azurekv
             public string AzureKeyvaultUri { get; set; }
             public string AzureKeyvaultKeyName { get; set; }
             public string AzureKeyvaultAdTenantId { get; set; }
             public string AzureKeyvaultAdAppId { get; set; }
             public string AzureKeyvaultAdSecret { get; set; }
-            // Google Cloud KMS
+            // gcpkms
             public string GoogleCloudProjectId { get; set; }
             public string GoogleCloudLocationId { get; set; }
             public string GoogleCloudKeyringId { get; set; }
             public string GoogleCloudKeyId { get; set; }
             public string GoogleCloudKeyVersionId { get; set; }
-            // AWS KMS
+            // awskms
             public string AwsAccessKeyId { get; set; }
             public string AwsAccessKeySecret { get; set; }
             public string AwsRegion { get; set; }
             public string AwsKeyId { get; set; }
-            // Hashicorp Vault...
+            // vault...
             // Other HSMs...
         }
 

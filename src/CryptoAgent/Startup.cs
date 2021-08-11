@@ -34,73 +34,53 @@ namespace Bit.CryptoAgent
             {
                 services.AddSingleton<IRsaKeyService, LocalCertificateRsaKeyService>();
 
-                if (!string.IsNullOrWhiteSpace(settings.Certificate?.StoreThumbprint))
+                var certificateProvider = settings.Certificate.Provider?.ToLowerInvariant();
+                if (certificateProvider == "store")
                 {
                     services.AddSingleton<ICertificateProviderService, StoreCertificateProviderService>();
                 }
-                else if (!string.IsNullOrWhiteSpace(settings.Certificate?.FilesystemPath))
+                else if (certificateProvider == "filesystem")
                 {
                     services.AddSingleton<ICertificateProviderService, FilesystemCertificateProviderService>();
                 }
-                else if (!string.IsNullOrWhiteSpace(settings.Certificate?.AzureStorageConnectionString))
+                else if (certificateProvider == "azurestorage")
                 {
                     services.AddSingleton<ICertificateProviderService, AzureStorageCertificateProviderService>();
                 }
-                else if (!string.IsNullOrWhiteSpace(settings.Certificate?.AzureKeyvaultUri))
+                else if (certificateProvider == "azurekv")
                 {
                     services.AddSingleton<ICertificateProviderService, AzureKeyVaultCertificateProviderService>();
                 }
                 else
                 {
-                    throw new Exception("No certificate provider configured.");
+                    throw new Exception("Unknown certificate provider configured.");
                 }
             }
-            else if (rsaKeyProvider == "azure")
+            else if (rsaKeyProvider == "azurekv")
             {
-                if (!string.IsNullOrWhiteSpace(settings.RsaKey?.AzureKeyvaultUri))
-                {
-                    services.AddSingleton<IRsaKeyService, AzureKeyVaultRsaKeyService>();
-                }
-                else
-                {
-                    throw new Exception("No azure key vault configured.");
-                }
+                services.AddSingleton<IRsaKeyService, AzureKeyVaultRsaKeyService>();
             }
-            else if (rsaKeyProvider == "gcp")
+            else if (rsaKeyProvider == "gcpkms")
             {
-                if (!string.IsNullOrWhiteSpace(settings.RsaKey?.GoogleCloudKeyId))
-                {
-                    services.AddSingleton<IRsaKeyService, GoogleCloudKmsRsaKeyService>();
-                }
-                else
-                {
-                    throw new Exception("No gcp kms configured.");
-                }
+                services.AddSingleton<IRsaKeyService, GoogleCloudKmsRsaKeyService>();
             }
-            else if (rsaKeyProvider == "aws")
+            else if (rsaKeyProvider == "awskms")
             {
-                if (!string.IsNullOrWhiteSpace(settings.RsaKey?.AwsAccessKeyId))
-                {
-                    services.AddSingleton<IRsaKeyService, AwsKmsRsaKeyService>();
-                }
-                else
-                {
-                    throw new Exception("No aws kms configured.");
-                }
+                services.AddSingleton<IRsaKeyService, AwsKmsRsaKeyService>();
             }
             else
             {
-                throw new Exception("Unknown rsa key provider.");
+                throw new Exception("Unknown rsa key provider configured.");
             }
 
             services.AddSingleton<ICryptoFunctionService, CryptoFunctionService>();
             services.AddSingleton<ICryptoService, CryptoService>();
 
-            // JsonFlatFileDataStore
             if (!string.IsNullOrWhiteSpace(settings.Database?.JsonFilePath))
             {
                 // Assign foobar to keyProperty in order to not use incrementing Id functionality
-                services.AddSingleton<IDataStore>(new DataStore(settings.Database.JsonFilePath, keyProperty: "--foobar--"));
+                services.AddSingleton<IDataStore>(
+                    new DataStore(settings.Database.JsonFilePath, keyProperty: "--foobar--"));
                 services.AddSingleton<IApplicationDataRepository, Repositories.JsonFile.ApplicationDataRepository>();
                 services.AddSingleton<IUserKeyRepository, Repositories.JsonFile.UserKeyRepository>();
             }
