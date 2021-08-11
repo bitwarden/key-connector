@@ -10,8 +10,7 @@ namespace Bit.CryptoAgent.Services
     public class AwsKmsRsaKeyService : IRsaKeyService
     {
         private readonly CryptoAgentSettings _settings;
-
-        private AmazonKeyManagementServiceClient _kmsClient;
+        private readonly AmazonKeyManagementServiceClient _kmsClient;
 
         public AwsKmsRsaKeyService(
             CryptoAgentSettings settings)

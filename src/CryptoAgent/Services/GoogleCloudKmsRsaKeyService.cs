@@ -64,7 +64,7 @@ namespace Bit.CryptoAgent.Services
             return rsa.ExportRSAPublicKey();
         }
 
-        public async Task<RSA> GetRsaPublicKeyAsync()
+        private async Task<RSA> GetRsaPublicKeyAsync()
         {
             var publicKey = await _keyManagementServiceClient.GetPublicKeyAsync(_cryptoKeyVersionName);
             var blocks = publicKey.Pem.Split("-", StringSplitOptions.RemoveEmptyEntries);

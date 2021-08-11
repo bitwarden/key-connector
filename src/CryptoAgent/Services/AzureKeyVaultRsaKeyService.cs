@@ -9,15 +9,17 @@ namespace Bit.CryptoAgent.Services
     public class AzureKeyVaultRsaKeyService : IRsaKeyService
     {
         private readonly CryptoAgentSettings _settings;
+        private readonly ClientSecretCredential _credential;
 
         private KeyVaultKey _key;
         private CryptographyClient _cryptographyClient;
-        private ClientSecretCredential _credential;
 
         public AzureKeyVaultRsaKeyService(
             CryptoAgentSettings settings)
         {
             _settings = settings;
+            _credential = new ClientSecretCredential(_settings.RsaKey.AzureKeyvaultAdTenantId,
+                _settings.RsaKey.AzureKeyvaultAdAppId, _settings.RsaKey.AzureKeyvaultAdSecret);
         }
 
         public async Task<byte[]> EncryptAsync(byte[] data)
@@ -59,8 +61,7 @@ namespace Bit.CryptoAgent.Services
             if (_cryptographyClient == null)
             {
                 var key = await GetKeyAsync();
-                var credential = GetCredential();
-                _cryptographyClient = new CryptographyClient(key.Id, credential);
+                _cryptographyClient = new CryptographyClient(key.Id, _credential);
             }
             return _cryptographyClient;
         }
@@ -69,22 +70,11 @@ namespace Bit.CryptoAgent.Services
         {
             if (_key == null)
             {
-                var credential = GetCredential();
                 var keyVaultUri = new Uri(_settings.RsaKey.AzureKeyvaultUri);
-                var keyClient = new KeyClient(keyVaultUri, credential);
+                var keyClient = new KeyClient(keyVaultUri, _credential);
                 _key = await keyClient.GetKeyAsync(_settings.RsaKey.AzureKeyvaultKeyName);
             }
             return _key;
-        }
-
-        private ClientSecretCredential GetCredential()
-        {
-            if (_credential == null)
-            {
-                _credential = new ClientSecretCredential(_settings.RsaKey.AzureKeyvaultAdTenantId,
-                    _settings.RsaKey.AzureKeyvaultAdAppId, _settings.RsaKey.AzureKeyvaultAdSecret);
-            }
-            return _credential;
         }
     }
 }
