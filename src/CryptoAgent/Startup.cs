@@ -76,7 +76,8 @@ namespace Bit.CryptoAgent
             services.AddSingleton<ICryptoFunctionService, CryptoFunctionService>();
             services.AddSingleton<ICryptoService, CryptoService>();
 
-            if (!string.IsNullOrWhiteSpace(settings.Database?.JsonFilePath))
+            var databaseProvider = settings.Database.Provider?.ToLowerInvariant();
+            if (databaseProvider == "json")
             {
                 // Assign foobar to keyProperty in order to not use incrementing Id functionality
                 services.AddSingleton<IDataStore>(

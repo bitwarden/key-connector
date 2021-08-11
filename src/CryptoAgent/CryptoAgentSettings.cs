@@ -53,10 +53,9 @@
 
         public class DatabaseSettings
         {
+            public string Provider { get; set; }
+            // json
             public string JsonFilePath { get; set; }
-            public string SqlServerConnectionString { get; set; }
-            public string MySqlConnectionString { get; set; }
-            public string PostgreSqlConnectionString { get; set; }
         }
     }
 }
