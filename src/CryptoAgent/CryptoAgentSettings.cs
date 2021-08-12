@@ -25,6 +25,13 @@
             public string AzureKeyvaultAdTenantId { get; set; }
             public string AzureKeyvaultAdAppId { get; set; }
             public string AzureKeyvaultAdSecret { get; set; }
+            // vault
+            public string VaultServerUri { get; set; }
+            public string VaultToken { get; set; }
+            public string VaultSecretMountPoint { get; set; }
+            public string VaultSecretPath { get; set; }
+            public string VaultSecretDataKey { get; set; }
+            public string VaultSecretFilePassword { get; set; }
         }
 
         public class RsaKeySettings
@@ -47,7 +54,6 @@
             public string AwsAccessKeySecret { get; set; }
             public string AwsRegion { get; set; }
             public string AwsKeyId { get; set; }
-            // vault...
             // Other HSMs...
         }
 

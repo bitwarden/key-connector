@@ -51,6 +51,10 @@ namespace Bit.CryptoAgent
                 {
                     services.AddSingleton<ICertificateProviderService, AzureKeyVaultCertificateProviderService>();
                 }
+                else if (certificateProvider == "vault")
+                {
+                    services.AddSingleton<ICertificateProviderService, HashicorpVaultCertificateProviderService>();
+                }
                 else
                 {
                     throw new Exception("Unknown certificate provider configured.");

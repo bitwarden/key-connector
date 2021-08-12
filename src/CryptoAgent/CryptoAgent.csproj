@@ -15,6 +15,7 @@
     <PackageReference Include="Azure.Storage.Blobs" Version="12.9.1" />
     <PackageReference Include="Google.Cloud.Kms.V1" Version="2.4.0" />
     <PackageReference Include="JsonFlatFileDataStore" Version="2.2.3" />
+    <PackageReference Include="VaultSharp" Version="1.6.5.1" />
   </ItemGroup>
 
 </Project>
