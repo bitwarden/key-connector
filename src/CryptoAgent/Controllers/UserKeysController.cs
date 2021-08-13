@@ -1,33 +1,42 @@
 ﻿using Bit.CryptoAgent.Models;
 using Bit.CryptoAgent.Repositories;
 using Bit.CryptoAgent.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Bit.CryptoAgent.Controllers
 {
+    [Authorize("Application")]
     [Route("user-keys")]
     public class UserKeysController : Controller
     {
         private readonly ILogger<UserKeysController> _logger;
         private readonly ICryptoService _cryptoService;
         private readonly IUserKeyRepository _userKeyRepository;
+        private readonly IdentityOptions _identityOptions;
 
         public UserKeysController(
+            IOptions<IdentityOptions> optionsAccessor,
             ILogger<UserKeysController> logger,
             IUserKeyRepository userKeyRepository,
             ICryptoService cryptoService)
         {
+            _identityOptions = optionsAccessor?.Value ?? new IdentityOptions();
             _logger = logger;
             _cryptoService = cryptoService;
             _userKeyRepository = userKeyRepository;
         }
 
-        [HttpPost("{userId}/get")]
-        public async Task<IActionResult> Get(Guid userId, [FromBody] UserKeyGetRequestModel model)
+        [HttpPost("get")]
+        public async Task<IActionResult> Get([FromBody] UserKeyGetRequestModel model)
         {
+            var userId = GetProperUserId().Value;
             var publicKey = Convert.FromBase64String(model.PublicKey);
             var user = await _userKeyRepository.ReadAsync(userId);
             if (user == null)
@@ -45,9 +54,10 @@ namespace Bit.CryptoAgent.Controllers
             return new JsonResult(response);
         }
 
-        [HttpPost("{userId}")]
-        public async Task<IActionResult> Post(Guid userId, [FromBody] UserKeyRequestModel model)
+        [HttpPost]
+        public async Task<IActionResult> Post([FromBody] UserKeyRequestModel model)
         {
+            var userId = GetProperUserId().Value;
             var user = await _userKeyRepository.ReadAsync(userId);
             if (user != null)
             {
@@ -63,9 +73,10 @@ namespace Bit.CryptoAgent.Controllers
             return new OkResult();
         }
 
-        [HttpPut("{userId}")]
-        public async Task<IActionResult> Put(Guid userId, [FromBody] UserKeyRequestModel model)
+        [HttpPut]
+        public async Task<IActionResult> Put([FromBody] UserKeyRequestModel model)
         {
+            var userId = GetProperUserId().Value;
             var user = await _userKeyRepository.ReadAsync(userId);
             if (user != null)
             {
@@ -79,6 +90,16 @@ namespace Bit.CryptoAgent.Controllers
             };
             await _userKeyRepository.UpdateAsync(user);
             return new OkResult();
+        }
+
+        public Guid? GetProperUserId()
+        {
+            var userId = User.FindFirstValue(_identityOptions.ClaimsIdentity.UserIdClaimType);
+            if (!Guid.TryParse(userId, out var userIdGuid))
+            {
+                return null;
+            }
+            return userIdGuid;
         }
     }
 }

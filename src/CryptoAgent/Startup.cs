@@ -1,13 +1,17 @@
 ﻿using Bit.CryptoAgent.Repositories;
 using Bit.CryptoAgent.Services;
+using IdentityModel;
+using IdentityServer4.AccessTokenValidation;
 using JsonFlatFileDataStore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Globalization;
+using System.Security.Claims;
 
 namespace Bit.CryptoAgent
 {
@@ -29,6 +33,51 @@ namespace Bit.CryptoAgent
             ConfigurationBinder.Bind(Configuration.GetSection("CryptoAgentSettings"), settings);
             services.AddSingleton(s => settings);
 
+            AddAuthentication(services, settings);
+            AddRsaKeyProvider(services, settings);
+
+            services.AddSingleton<ICryptoFunctionService, CryptoFunctionService>();
+            services.AddSingleton<ICryptoService, CryptoService>();
+
+            AddDatabase(services, settings);
+
+            services.AddControllers();
+        }
+
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints => endpoints.MapDefaultControllerRoute());
+        }
+
+        private void AddDatabase(IServiceCollection services, CryptoAgentSettings settings)
+        {
+            var databaseProvider = settings.Database.Provider?.ToLowerInvariant();
+            if (databaseProvider == "json")
+            {
+                // Assign foobar to keyProperty in order to not use incrementing Id functionality
+                services.AddSingleton<IDataStore>(
+                    new DataStore(settings.Database.JsonFilePath, keyProperty: "--foobar--"));
+                services.AddSingleton<IApplicationDataRepository, Repositories.JsonFile.ApplicationDataRepository>();
+                services.AddSingleton<IUserKeyRepository, Repositories.JsonFile.UserKeyRepository>();
+            }
+            else
+            {
+                throw new Exception("No database configured.");
+            }
+        }
+
+        private void AddRsaKeyProvider(IServiceCollection services, CryptoAgentSettings settings)
+        {
             var rsaKeyProvider = settings.RsaKey.Provider?.ToLowerInvariant();
             if (rsaKeyProvider == "certificate")
             {
@@ -76,36 +125,44 @@ namespace Bit.CryptoAgent
             {
                 throw new Exception("Unknown rsa key provider configured.");
             }
-
-            services.AddSingleton<ICryptoFunctionService, CryptoFunctionService>();
-            services.AddSingleton<ICryptoService, CryptoService>();
-
-            var databaseProvider = settings.Database.Provider?.ToLowerInvariant();
-            if (databaseProvider == "json")
-            {
-                // Assign foobar to keyProperty in order to not use incrementing Id functionality
-                services.AddSingleton<IDataStore>(
-                    new DataStore(settings.Database.JsonFilePath, keyProperty: "--foobar--"));
-                services.AddSingleton<IApplicationDataRepository, Repositories.JsonFile.ApplicationDataRepository>();
-                services.AddSingleton<IUserKeyRepository, Repositories.JsonFile.UserKeyRepository>();
-            }
-            else
-            {
-                throw new Exception("No database configured.");
-            }
-
-            services.AddControllers();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        private void AddAuthentication(IServiceCollection services, CryptoAgentSettings settings)
         {
-            if (env.IsDevelopment())
+            services.Configure<IdentityOptions>(options =>
             {
-                app.UseDeveloperExceptionPage();
-            }
+                options.ClaimsIdentity = new ClaimsIdentityOptions
+                {
+                    UserNameClaimType = JwtClaimTypes.Email,
+                    UserIdClaimType = JwtClaimTypes.Subject
+                };
+            });
+            services
+                .AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
+                .AddIdentityServerAuthentication(options =>
+                {
+                    options.Authority = settings.IdentityServerUri;
+                    options.RequireHttpsMetadata = !Environment.IsDevelopment() &&
+                        settings.IdentityServerUri.StartsWith("https");
+                    options.NameClaimType = ClaimTypes.Email;
+                    options.SupportedTokens = SupportedTokens.Jwt;
+                });
 
-            app.UseRouting();
-            app.UseEndpoints(endpoints => endpoints.MapDefaultControllerRoute());
+            services
+                .AddAuthorization(config =>
+                {
+                    config.AddPolicy("Application", policy =>
+                    {
+                        policy.RequireAuthenticatedUser();
+                        policy.RequireClaim(JwtClaimTypes.AuthenticationMethod, "Application", "external");
+                        policy.RequireClaim(JwtClaimTypes.Scope, "api");
+                    });
+                });
+
+            if (Environment.IsDevelopment())
+            {
+                Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
+            }
         }
     }
 }

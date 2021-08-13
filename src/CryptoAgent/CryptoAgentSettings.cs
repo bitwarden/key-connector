@@ -2,6 +2,8 @@
 {
     public class CryptoAgentSettings
     {
+        public string IdentityServerUri { get; set; }
+
         public DatabaseSettings Database { get; set; }
         public CertificateSettings Certificate { get; set; }
         public RsaKeySettings RsaKey { get; set; }
