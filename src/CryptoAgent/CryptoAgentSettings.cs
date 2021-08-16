@@ -2,6 +2,7 @@
 {
     public class CryptoAgentSettings
     {
+        public string LogFilePath { get; set; }
         public string IdentityServerUri { get; set; }
 
         public DatabaseSettings Database { get; set; }
