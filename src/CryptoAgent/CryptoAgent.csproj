@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.KeyManagementService" Version="3.7.1.19" />
+    <PackageReference Include="AWSSDK.KeyManagementService" Version="3.7.1.20" />
     <PackageReference Include="Azure.Identity" Version="1.4.1" />
     <PackageReference Include="Azure.Security.KeyVault.Certificates" Version="4.2.0" />
     <PackageReference Include="Azure.Security.KeyVault.Keys" Version="4.2.0" />
@@ -16,7 +16,9 @@
     <PackageReference Include="Google.Cloud.Kms.V1" Version="2.4.0" />
     <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="3.0.1" />
     <PackageReference Include="JsonFlatFileDataStore" Version="2.2.3" />
-    <PackageReference Include="VaultSharp" Version="1.6.5.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="VaultSharp" Version="1.7.0" />
   </ItemGroup>
 
 </Project>
