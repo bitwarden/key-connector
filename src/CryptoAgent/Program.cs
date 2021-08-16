@@ -11,32 +11,13 @@ namespace Bit.CryptoAgent
         {
             Host
                 .CreateDefaultBuilder(args)
+                .UseSerilog()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.ConfigureLogging((hostingContext, logging) =>
-                    {
-                        var settings = new CryptoAgentSettings();
-                        ConfigurationBinder.Bind(
-                            hostingContext.Configuration.GetSection("CryptoAgentSettings"), settings);
-
-                        var serilogConfig = new LoggerConfiguration()
-                            .Enrich.FromLogContext();
-
-                        if (!string.IsNullOrWhiteSpace(settings.LogFilePath))
-                        {
-                            serilogConfig.WriteTo.File(settings.LogFilePath, rollOnFileSizeLimit: true,
-                                rollingInterval: RollingInterval.Day);
-                        }
-
-                        var serilog = serilogConfig.CreateLogger();
-                        logging.AddSerilog(serilog);
-                    });
                 })
                 .Build()
                 .Run();
         }
-
-
     }
 }
