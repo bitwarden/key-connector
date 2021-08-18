@@ -47,6 +47,8 @@ namespace Bit.CryptoAgent
             AddDatabase(services, settings);
 
             services.AddControllers();
+
+            services.AddHostedService<HostedServices.DatabaseMigrationHostedService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -67,6 +69,9 @@ namespace Bit.CryptoAgent
         private void AddDatabase(IServiceCollection services, CryptoAgentSettings settings)
         {
             var databaseProvider = settings.Database.Provider?.ToLowerInvariant();
+            var efDatabaseProvider = databaseProvider == "sqlserver" || databaseProvider == "postgresql" ||
+                databaseProvider == "mysql" || databaseProvider == "sqlite";
+
             if (databaseProvider == "json")
             {
                 // Assign foobar to keyProperty in order to not use incrementing Id functionality
@@ -74,6 +79,32 @@ namespace Bit.CryptoAgent
                     new DataStore(settings.Database.JsonFilePath, keyProperty: "--foobar--"));
                 services.AddSingleton<IApplicationDataRepository, Repositories.JsonFile.ApplicationDataRepository>();
                 services.AddSingleton<IUserKeyRepository, Repositories.JsonFile.UserKeyRepository>();
+            }
+            else if (efDatabaseProvider)
+            {
+                if (databaseProvider == "sqlserver")
+                {
+                    services.AddDbContext<Repositories.EntityFramework.DatabaseContext,
+                        Repositories.EntityFramework.SqlServerDatabaseContext>();
+                }
+                else if (databaseProvider == "postgresql")
+                {
+                    services.AddDbContext<Repositories.EntityFramework.DatabaseContext,
+                        Repositories.EntityFramework.PostgreSqlDatabaseContext>();
+                }
+                else if (databaseProvider == "mysql")
+                {
+                    services.AddDbContext<Repositories.EntityFramework.DatabaseContext,
+                        Repositories.EntityFramework.MySqlDatabaseContext>();
+                }
+                else if (databaseProvider == "sqlite")
+                {
+                    services.AddDbContext<Repositories.EntityFramework.DatabaseContext,
+                        Repositories.EntityFramework.SqliteDatabaseContext>();
+                }
+                services.AddSingleton<IApplicationDataRepository,
+                    Repositories.EntityFramework.ApplicationDataRepository>();
+                services.AddSingleton<IUserKeyRepository, Repositories.EntityFramework.UserKeyRepository>();
             }
             else
             {

@@ -92,7 +92,7 @@ namespace Bit.CryptoAgent.Controllers
             return new OkResult();
         }
 
-        public Guid? GetProperUserId()
+        private Guid? GetProperUserId()
         {
             var userId = User.FindFirstValue(_identityOptions.ClaimsIdentity.UserIdClaimType);
             if (!Guid.TryParse(userId, out var userIdGuid))

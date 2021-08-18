@@ -64,6 +64,14 @@
             public string Provider { get; set; }
             // json
             public string JsonFilePath { get; set; }
+            // sqlserver
+            public string SqlServerConnectionString { get; set; }
+            // postgresql
+            public string PostgreSqlConnectionString { get; set; }
+            // mysql
+            public string MySqlConnectionString { get; set; }
+            // sqlite
+            public string SqliteConnectionString { get; set; }
         }
     }
 }
