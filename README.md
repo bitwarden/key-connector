@@ -1,4 +1,10 @@
-The Bitwarden Crypto Agent is a self-hosted application that stores and provides cryptographic keys to Bitwarden clients.
+<a href="https://hub.docker.com/r/bitwarden/crypto-agent" target="_blank">
+  <img src="https://img.shields.io/docker/pulls/bitwarden/crypto-agent.svg" alt="DockerHub" />
+</a>
+
+# Bitwarden Crypto Agent
+
+The Bitwarden Crypto Agent is a self-hosted web application that stores and provides cryptographic keys to Bitwarden clients.
 
 The Crypto Agent project is written in C# using .NET Core with ASP.NET Core. The codebase can be developed, built, run, and deployed cross-platform on Windows, macOS, and Linux distributions.
 
