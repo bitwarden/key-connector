@@ -44,11 +44,14 @@ namespace Bit.CryptoAgent
             services.AddSingleton<ICryptoFunctionService, CryptoFunctionService>();
             services.AddSingleton<ICryptoService, CryptoService>();
 
-            AddDatabase(services, settings);
+            var efDatabaseProvider = AddDatabase(services, settings);
 
             services.AddControllers();
 
-            services.AddHostedService<HostedServices.DatabaseMigrationHostedService>();
+            if(efDatabaseProvider)
+            {
+                services.AddHostedService<HostedServices.DatabaseMigrationHostedService>();
+            }
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -66,7 +69,7 @@ namespace Bit.CryptoAgent
             app.UseEndpoints(endpoints => endpoints.MapDefaultControllerRoute());
         }
 
-        private void AddDatabase(IServiceCollection services, CryptoAgentSettings settings)
+        private bool AddDatabase(IServiceCollection services, CryptoAgentSettings settings)
         {
             var databaseProvider = settings.Database.Provider?.ToLowerInvariant();
             var efDatabaseProvider = databaseProvider == "sqlserver" || databaseProvider == "postgresql" ||
@@ -110,6 +113,8 @@ namespace Bit.CryptoAgent
             {
                 throw new Exception("No database configured.");
             }
+
+            return efDatabaseProvider;
         }
 
         private void AddRsaKeyProvider(IServiceCollection services, CryptoAgentSettings settings)
