@@ -83,6 +83,11 @@ namespace Bit.CryptoAgent
                 services.AddSingleton<IApplicationDataRepository, Repositories.JsonFile.ApplicationDataRepository>();
                 services.AddSingleton<IUserKeyRepository, Repositories.JsonFile.UserKeyRepository>();
             }
+            else if (databaseProvider == "mongo")
+            {
+                services.AddSingleton<IApplicationDataRepository, Repositories.Mongo.ApplicationDataRepository>();
+                services.AddSingleton<IUserKeyRepository, Repositories.Mongo.UserKeyRepository>();
+            }
             else if (efDatabaseProvider)
             {
                 if (databaseProvider == "sqlserver")
