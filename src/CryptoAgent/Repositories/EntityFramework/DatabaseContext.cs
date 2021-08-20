@@ -59,7 +59,7 @@ namespace Bit.CryptoAgent.Repositories.EntityFramework
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
-            => options.UseMySql(_settings.Database.PostgreSqlConnectionString,
+            => options.UseMySql(_settings.Database.MySqlConnectionString,
                 ServerVersion.AutoDetect(_settings.Database.MySqlConnectionString));
     }
 
