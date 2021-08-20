@@ -14,12 +14,16 @@ namespace Bit.CryptoAgent.Repositories.Mongo
         public async Task<string> ReadSymmetricKeyAsync()
         {
             var document = await Collection.Find(new BsonDocument()).FirstOrDefaultAsync();
-            return document.SymmetricKey;
+            return document?.SymmetricKey;
         }
 
         public async Task UpdateSymmetricKeyAsync(string key)
         {
             var document = await Collection.Find(new BsonDocument()).FirstOrDefaultAsync();
+            if (document == null)
+            {
+                document = new ApplicationData();
+            }
             document.SymmetricKey = key;
             await Collection.ReplaceOneAsync(d => d.Id == document.Id, document, new ReplaceOptions
             {

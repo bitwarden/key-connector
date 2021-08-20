@@ -63,9 +63,9 @@ namespace Bit.CryptoAgent.Repositories.EntityFramework
                 ServerVersion.AutoDetect(_settings.Database.MySqlConnectionString));
     }
 
-    [Keyless]
     public class ApplicationData
     {
+        public int Id { get; set; }
         public string SymmetricKey { get; set; }
     }
 

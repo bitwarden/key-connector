@@ -59,7 +59,7 @@ namespace Bit.CryptoAgent.Services
         public async Task<byte[]> GetPublicKeyAsync()
         {
             var certificate = await GetCertificateAsync();
-            return certificate.GetRSAPublicKey().ExportRSAPublicKey();
+            return certificate.GetRSAPublicKey().ExportSubjectPublicKeyInfo();
         }
 
         private async Task<X509Certificate2> GetCertificateAsync()

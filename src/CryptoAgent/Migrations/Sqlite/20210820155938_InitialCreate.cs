@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Bit.CryptoAgent.Migrations.PostgreSql
+namespace Bit.CryptoAgent.Migrations.Sqlite
 {
     public partial class InitialCreate : Migration
     {
@@ -11,21 +11,24 @@ namespace Bit.CryptoAgent.Migrations.PostgreSql
                 name: "ApplicationDatas",
                 columns: table => new
                 {
-                    SymmetricKey = table.Column<string>(type: "text", nullable: true)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    SymmetricKey = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
+                    table.PrimaryKey("PK_ApplicationDatas", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
                 name: "UserKeys",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Key = table.Column<string>(type: "text", nullable: true),
-                    CreationDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    RevisionDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    LastAccessDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Key = table.Column<string>(type: "TEXT", nullable: true),
+                    CreationDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    RevisionDate = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastAccessDate = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {

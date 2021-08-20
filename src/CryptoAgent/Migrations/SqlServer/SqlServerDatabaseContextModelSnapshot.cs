@@ -21,8 +21,15 @@ namespace Bit.CryptoAgent.Migrations.SqlServer
 
             modelBuilder.Entity("Bit.CryptoAgent.Repositories.EntityFramework.ApplicationData", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
                     b.Property<string>("SymmetricKey")
                         .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
 
                     b.ToTable("ApplicationDatas");
                 });

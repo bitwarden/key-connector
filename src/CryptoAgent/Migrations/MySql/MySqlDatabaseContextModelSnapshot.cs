@@ -19,8 +19,14 @@ namespace Bit.CryptoAgent.Migrations.MySql
 
             modelBuilder.Entity("Bit.CryptoAgent.Repositories.EntityFramework.ApplicationData", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
                     b.Property<string>("SymmetricKey")
                         .HasColumnType("longtext");
+
+                    b.HasKey("Id");
 
                     b.ToTable("ApplicationDatas");
                 });

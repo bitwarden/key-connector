@@ -14,14 +14,15 @@ namespace Bit.CryptoAgent.Repositories.EntityFramework
         {
             using var scope = ServiceScopeFactory.CreateScope();
             var dbContext = GetDatabaseContext(scope);
-            return Task.FromResult(dbContext.ApplicationDatas.FirstOrDefault().SymmetricKey);
+            return Task.FromResult(dbContext.ApplicationDatas.FirstOrDefault()?.SymmetricKey);
         }
 
         public async Task UpdateSymmetricKeyAsync(string key)
         {
             using var scope = ServiceScopeFactory.CreateScope();
             var dbContext = GetDatabaseContext(scope);
-            if (dbContext.ApplicationDatas.FirstOrDefault() == null)
+            var data = dbContext.ApplicationDatas.FirstOrDefault();
+            if (data == null)
             {
                 await dbContext.AddAsync(new ApplicationData
                 {
@@ -30,7 +31,7 @@ namespace Bit.CryptoAgent.Repositories.EntityFramework
             }
             else
             {
-                dbContext.ApplicationDatas.FirstOrDefault().SymmetricKey = key;
+                data.SymmetricKey = key;
             }
             await dbContext.SaveChangesAsync();
         }

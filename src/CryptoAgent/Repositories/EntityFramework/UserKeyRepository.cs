@@ -25,7 +25,7 @@ namespace Bit.CryptoAgent.Repositories.EntityFramework
             using var scope = ServiceScopeFactory.CreateScope();
             var dbContext = GetDatabaseContext(scope);
             var entity = await dbContext.UserKeys.FindAsync(id);
-            return entity.ToUserKeyModel();
+            return entity?.ToUserKeyModel();
         }
 
         public virtual async Task UpdateAsync(UserKeyModel item)

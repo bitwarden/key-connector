@@ -1,7 +1,8 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
-namespace Bit.CryptoAgent.Migrations.Sqlite
+namespace Bit.CryptoAgent.Migrations.PostgreSql
 {
     public partial class InitialCreate : Migration
     {
@@ -11,21 +12,24 @@ namespace Bit.CryptoAgent.Migrations.Sqlite
                 name: "ApplicationDatas",
                 columns: table => new
                 {
-                    SymmetricKey = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    SymmetricKey = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
+                    table.PrimaryKey("PK_ApplicationDatas", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
                 name: "UserKeys",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Key = table.Column<string>(type: "TEXT", nullable: true),
-                    CreationDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    RevisionDate = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LastAccessDate = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Key = table.Column<string>(type: "text", nullable: true),
+                    CreationDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    RevisionDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    LastAccessDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {

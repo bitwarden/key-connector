@@ -53,7 +53,7 @@ namespace Bit.CryptoAgent.Services
         public async Task<byte[]> GetPublicKeyAsync()
         {
             var key = await GetKeyAsync();
-            return key.Key.ToRSA().ExportRSAPublicKey();
+            return key.Key.ToRSA().ExportSubjectPublicKeyInfo();
         }
 
         private async Task<CryptographyClient> GetCryptographyClientAsync()

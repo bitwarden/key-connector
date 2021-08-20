@@ -21,8 +21,15 @@ namespace Bit.CryptoAgent.Migrations.PostgreSql
 
             modelBuilder.Entity("Bit.CryptoAgent.Repositories.EntityFramework.ApplicationData", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
                     b.Property<string>("SymmetricKey")
                         .HasColumnType("text");
+
+                    b.HasKey("Id");
 
                     b.ToTable("ApplicationDatas");
                 });

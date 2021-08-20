@@ -11,10 +11,13 @@ namespace Bit.CryptoAgent.Migrations.SqlServer
                 name: "ApplicationDatas",
                 columns: table => new
                 {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     SymmetricKey = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
+                    table.PrimaryKey("PK_ApplicationDatas", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(

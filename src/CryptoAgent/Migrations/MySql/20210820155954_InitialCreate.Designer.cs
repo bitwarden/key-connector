@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Bit.CryptoAgent.Migrations.MySql
 {
     [DbContext(typeof(MySqlDatabaseContext))]
-    [Migration("20210817205815_InitialCreate")]
+    [Migration("20210820155954_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,8 +21,14 @@ namespace Bit.CryptoAgent.Migrations.MySql
 
             modelBuilder.Entity("Bit.CryptoAgent.Repositories.EntityFramework.ApplicationData", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
                     b.Property<string>("SymmetricKey")
                         .HasColumnType("longtext");
+
+                    b.HasKey("Id");
 
                     b.ToTable("ApplicationDatas");
                 });

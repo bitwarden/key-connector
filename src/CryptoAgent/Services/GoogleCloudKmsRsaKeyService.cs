@@ -61,7 +61,7 @@ namespace Bit.CryptoAgent.Services
         public async Task<byte[]> GetPublicKeyAsync()
         {
             var rsa = await GetRsaPublicKeyAsync();
-            return rsa.ExportRSAPublicKey();
+            return rsa.ExportSubjectPublicKeyInfo();
         }
 
         private async Task<RSA> GetRsaPublicKeyAsync()

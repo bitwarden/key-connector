@@ -18,8 +18,14 @@ namespace Bit.CryptoAgent.Migrations.Sqlite
 
             modelBuilder.Entity("Bit.CryptoAgent.Repositories.EntityFramework.ApplicationData", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("SymmetricKey")
                         .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
 
                     b.ToTable("ApplicationDatas");
                 });

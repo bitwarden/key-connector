@@ -83,7 +83,7 @@ namespace Bit.CryptoAgent.Services
             var response = await _kmsClient.GetPublicKeyAsync(request);
             var rsa = RSA.Create();
             rsa.ImportSubjectPublicKeyInfo(response.PublicKey.ToArray(), out _);
-            return rsa.ExportRSAPublicKey();
+            return rsa.ExportSubjectPublicKeyInfo();
         }
     }
 }
