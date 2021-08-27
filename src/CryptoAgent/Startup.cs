@@ -48,18 +48,21 @@ namespace Bit.CryptoAgent
 
             services.AddControllers();
 
-            if(efDatabaseProvider)
+            if (efDatabaseProvider)
             {
                 services.AddHostedService<HostedServices.DatabaseMigrationHostedService>();
             }
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, CryptoAgentSettings settings)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseCors(policy => policy.SetIsOriginAllowed(o => o == settings.WebVaultUri.TrimEnd('/'))
+                .AllowAnyMethod().AllowAnyHeader().AllowCredentials());
 
             app.UseRouting();
 
