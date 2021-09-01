@@ -93,48 +93,6 @@ namespace Bit.CryptoAgent.Services
             return Convert.ToBase64String(encData);
         }
 
-        // RSA Encrypt
-
-        public async Task<byte[]> RsaEncryptAsync(byte[] data, byte[] publicKey = null)
-        {
-            if (data == null)
-            {
-                return null;
-            }
-            if (publicKey == null)
-            {
-                return await _rsaKeyService.EncryptAsync(data);
-            }
-            var encData = await _cryptoFunctionService.RsaEncryptAsync(data, publicKey);
-            return encData;
-        }
-
-        // RSA Decrypt
-
-        public async Task<byte[]> RsaDecryptAsync(byte[] data)
-        {
-            if (data == null)
-            {
-                return null;
-            }
-            return await _rsaKeyService.DecryptAsync(data);
-        }
-
-        // RSA Verify
-
-        public async Task<bool> RsaVerifyAsync(byte[] data, byte[] signature, byte[] publicKey = null)
-        {
-            if (data == null || signature == null)
-            {
-                return false;
-            }
-            if (publicKey == null)
-            {
-                return await _rsaKeyService.VerifyAsync(data, signature);
-            }
-            return await _cryptoFunctionService.RsaVerifyAsync(data, signature, publicKey);
-        }
-
         // Helpers
 
         private async Task<byte[]> GetSymmetricKeyAsync()
@@ -157,6 +115,24 @@ namespace Bit.CryptoAgent.Services
             }
 
             return _symmetricKey;
+        }
+
+        private async Task<byte[]> RsaEncryptAsync(byte[] data)
+        {
+            if (data == null)
+            {
+                return null;
+            }
+            return await _rsaKeyService.EncryptAsync(data);
+        }
+
+        private async Task<byte[]> RsaDecryptAsync(byte[] data)
+        {
+            if (data == null)
+            {
+                return null;
+            }
+            return await _rsaKeyService.DecryptAsync(data);
         }
     }
 }

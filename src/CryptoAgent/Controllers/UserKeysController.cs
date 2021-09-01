@@ -33,11 +33,10 @@ namespace Bit.CryptoAgent.Controllers
             _userKeyRepository = userKeyRepository;
         }
 
-        [HttpPost("get")]
-        public async Task<IActionResult> Get([FromBody] UserKeyGetRequestModel model)
+        [HttpGet]
+        public async Task<IActionResult> Get()
         {
             var userId = GetProperUserId().Value;
-            var publicKey = Convert.FromBase64String(model.PublicKey);
             var user = await _userKeyRepository.ReadAsync(userId);
             if (user == null)
             {
@@ -45,12 +44,10 @@ namespace Bit.CryptoAgent.Controllers
             }
             user.LastAccessDate = DateTime.UtcNow;
             await _userKeyRepository.UpdateAsync(user);
-            var key = await _cryptoService.AesDecryptAsync(user.Key);
-            var encKey = await _cryptoService.RsaEncryptAsync(key, publicKey);
             var response = new UserKeyResponseModel
             {
-                Key = Convert.ToBase64String(encKey)
-            };
+                Key = await _cryptoService.AesDecryptToB64Async(user.Key)
+        };
             return new JsonResult(response);
         }
 
@@ -63,11 +60,10 @@ namespace Bit.CryptoAgent.Controllers
             {
                 return new BadRequestResult();
             }
-            var key = await _cryptoService.RsaDecryptAsync(Convert.FromBase64String(model.Key));
             user = new UserKeyModel
             {
                 Id = userId,
-                Key = await _cryptoService.AesEncryptToB64Async(key)
+                Key = await _cryptoService.AesEncryptToB64Async(model.Key)
             };
             await _userKeyRepository.CreateAsync(user);
             return new OkResult();
@@ -82,11 +78,10 @@ namespace Bit.CryptoAgent.Controllers
             {
                 return new BadRequestResult();
             }
-            var key = await _cryptoService.RsaDecryptAsync(Convert.FromBase64String(model.Key));
             user = new UserKeyModel
             {
                 Id = userId,
-                Key = await _cryptoService.AesEncryptToB64Async(key)
+                Key = await _cryptoService.AesEncryptToB64Async(model.Key)
             };
             await _userKeyRepository.UpdateAsync(user);
             return new OkResult();
