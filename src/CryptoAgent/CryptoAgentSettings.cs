@@ -57,6 +57,15 @@
             public string AwsAccessKeySecret { get; set; }
             public string AwsRegion { get; set; }
             public string AwsKeyId { get; set; }
+            // pkcs11
+                // yubihsm2
+            public string Pkcs11Provider { get; set; }
+            public string Pkcs11LibraryPath { get; set; }
+            public string Pkcs11SlotTokenSerialNumber { get; set; }
+            public string Pkcs11LoginUserType { get; set; }
+            public string Pkcs11LoginPin { get; set; }
+            public string Pkcs11PrivateKeyLabel { get; set; }
+            public ulong? Pkcs11PrivateKeyId { get; set; }
             // Other HSMs...
         }
 

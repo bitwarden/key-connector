@@ -128,9 +128,16 @@ namespace Bit.CryptoAgent
         private void AddRsaKeyProvider(IServiceCollection services, CryptoAgentSettings settings)
         {
             var rsaKeyProvider = settings.RsaKey.Provider?.ToLowerInvariant();
-            if (rsaKeyProvider == "certificate")
+            if (rsaKeyProvider == "certificate" || rsaKeyProvider == "pkcs11")
             {
-                services.AddSingleton<IRsaKeyService, LocalCertificateRsaKeyService>();
+                if (rsaKeyProvider == "certificate")
+                {
+                    services.AddSingleton<IRsaKeyService, LocalCertificateRsaKeyService>();
+                }
+                else if (rsaKeyProvider == "pkcs11")
+                {
+                    services.AddSingleton<IRsaKeyService, Pkcs11RsaKeyService>();
+                }
 
                 var certificateProvider = settings.Certificate.Provider?.ToLowerInvariant();
                 if (certificateProvider == "store")
