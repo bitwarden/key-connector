@@ -6,6 +6,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         gosu \
         curl \
+        libc-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install YubiHSM2 SDK
