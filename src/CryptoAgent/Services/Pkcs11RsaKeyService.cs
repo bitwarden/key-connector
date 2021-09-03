@@ -54,7 +54,7 @@ namespace Bit.CryptoAgent.Services
             var mechanism = session.Factories.MechanismFactory.Create(CKM.CKM_RSA_PKCS_OAEP, mechanismParams);
             var plainData = session.Decrypt(mechanism, privateKey, data);
 
-            Cleanup(session, privateKey);
+            session.Logout();
             return Task.FromResult(plainData);
         }
 
@@ -72,7 +72,7 @@ namespace Bit.CryptoAgent.Services
             var mechanism = session.Factories.MechanismFactory.Create(CKM.CKM_SHA256_RSA_PKCS);
             var signature = session.Sign(mechanism, privateKey, data);
 
-            Cleanup(session, privateKey);
+            session.Logout();
             return Task.FromResult(signature);
         }
 
@@ -139,13 +139,25 @@ namespace Bit.CryptoAgent.Services
                 var provider = _settings.RsaKey.Pkcs11Provider?.ToLowerInvariant();
                 if (provider == "yubihsm2")
                 {
-                    // TODO: Verify that this path works for Debian-installed YubiHSM SDKs
                     libPath = "/usr/lib/x86_64-linux-gnu/pkcs11/yubihsm_pkcs11.so";
+                }
+                else if (provider == "opensc")
+                {
+                    libPath = "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so";
+                }
+                else
+                {
+                    throw new System.Exception("Please provide a library path or known provider.");
                 }
             }
 
             var factories = new Pkcs11InteropFactories();
-            return factories.Pkcs11LibraryFactory.LoadPkcs11Library(factories, libPath, AppType.MultiThreaded);
+            var library = factories.Pkcs11LibraryFactory.LoadPkcs11Library(factories, libPath, AppType.MultiThreaded);
+            if (library == null)
+            {
+                throw new System.Exception("Cannot load library.");
+            }
+            return library;
         }
 
         private ISession CreateNewSession(IPkcs11Library library)
@@ -158,7 +170,7 @@ namespace Bit.CryptoAgent.Services
                 if (slotInfo.SlotFlags.TokenPresent)
                 {
                     var tokenInfo = slot.GetTokenInfo();
-                    if (tokenInfo.SerialNumber == _settings.RsaKey.Pkcs11SlotTokenSerialNumber)
+                    if (tokenInfo?.SerialNumber == _settings.RsaKey.Pkcs11SlotTokenSerialNumber)
                     {
                         chosenSlot = slot;
                         break;
@@ -168,7 +180,7 @@ namespace Bit.CryptoAgent.Services
 
             if (chosenSlot == null)
             {
-                return null;
+                throw new System.Exception("Cannot locate token slot.");
             }
 
             var session = chosenSlot.OpenSession(SessionType.ReadWrite);
@@ -186,12 +198,6 @@ namespace Bit.CryptoAgent.Services
             session.Login(userType, _settings.RsaKey.Pkcs11LoginPin);
 
             return session;
-        }
-
-        private void Cleanup(ISession session, IObjectHandle privateKey)
-        {
-            session.DestroyObject(privateKey);
-            session.Logout();
         }
     }
 }
