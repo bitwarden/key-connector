@@ -164,17 +164,22 @@ namespace Bit.CryptoAgent.Services
         {
             ISlot chosenSlot = null;
             var slots = library.GetSlotList(SlotsType.WithOrWithoutTokenPresent);
+            var serialNumber = _settings.RsaKey.Pkcs11SlotTokenSerialNumber?.ToLowerInvariant();
             foreach (var slot in slots)
             {
                 var slotInfo = slot.GetSlotInfo();
                 if (slotInfo.SlotFlags.TokenPresent)
                 {
-                    var tokenInfo = slot.GetTokenInfo();
-                    if (tokenInfo?.SerialNumber == _settings.RsaKey.Pkcs11SlotTokenSerialNumber)
+                    try
                     {
-                        chosenSlot = slot;
-                        break;
+                        var tokenInfo = slot.GetTokenInfo();
+                        if (tokenInfo?.SerialNumber?.ToLowerInvariant() == serialNumber)
+                        {
+                            chosenSlot = slot;
+                            break;
+                        }
                     }
+                    catch (Pkcs11Exception) { }
                 }
             }
 
@@ -183,6 +188,7 @@ namespace Bit.CryptoAgent.Services
                 throw new System.Exception("Cannot locate token slot.");
             }
 
+            // TODO: read only?
             var session = chosenSlot.OpenSession(SessionType.ReadWrite);
 
             var userType = CKU.CKU_USER;
