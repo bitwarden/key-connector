@@ -137,7 +137,7 @@ namespace Bit.CryptoAgent.Services
             if (string.IsNullOrWhiteSpace(libPath))
             {
                 var provider = _settings.RsaKey.Pkcs11Provider?.ToLowerInvariant();
-                if (provider == "yubihsm2")
+                if (provider == "yubihsm")
                 {
                     libPath = "/usr/lib/x86_64-linux-gnu/pkcs11/yubihsm_pkcs11.so";
                 }

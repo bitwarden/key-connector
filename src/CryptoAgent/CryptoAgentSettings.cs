@@ -59,7 +59,7 @@
             public string AwsKeyId { get; set; }
             // pkcs11
             //      Providers:
-            //      yubihsm2
+            //      yubihsm
             //      opensc
             public string Pkcs11Provider { get; set; }
             public string Pkcs11LibraryPath { get; set; }
