@@ -137,8 +137,8 @@ cryptoAgentSettings__rsaKey__provider=pkcs11
 # Available providers: yubihsm, opensc
 cryptoAgentSettings__rsaKey__pkcs11Provider={Provider}
 cryptoAgentSettings__rsaKey__pkcs11SlotTokenSerialNumber={TokenSerialNumber}
-# Available user types: user, so
-cryptoAgentSettings__rsaKey__pkcs11LoginUserType={LoginUserType: user, so}
+# Available user types: user, so, context_specific
+cryptoAgentSettings__rsaKey__pkcs11LoginUserType={LoginUserType}
 cryptoAgentSettings__rsaKey__pkcs11LoginPin={LoginPIN}
 
 # Locate the private key on the device via label *or* ID.
