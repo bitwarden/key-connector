@@ -38,8 +38,10 @@ from one database provider to another is not supported at this time.
 
 ```
 cryptoAgentSettings__database__provider=json
-cryptoAgentSettings__database__jsonFilePath=/etc/bitwarden/data.json
+cryptoAgentSettings__database__jsonFilePath={FilePath}
 ```
+
+By default, the application stores the JSON file at the follow path: `/etc/bitwarden/data.json`.
 
 **Microsoft SQL Server**
 
@@ -84,7 +86,7 @@ The Bitwarden Crypto Agent uses a RSA key pair to protect user keys at rest. The
 
 You must configure how the Bitwarden Crypto Agent accesses and utilizes your RSA key pair.
 
-**Certificate (default)**
+**Certificate**
 
 An X509 certificate that contains the RSA key pair.
 
@@ -164,13 +166,15 @@ openssl pkcs12 -export -out ./bwagent.pfx -inkey bwagent.key
 
 If using the PKCS11 RSA key provider, you will need to make a public key PKCS12 certificate available.
 
-**Filesystem**
+**Filesystem (default)**
 
 ```
 cryptoAgentSettings__certificate__provider=filesystem
 cryptoAgentSettings__certificate__filesystemPath={Path}
 cryptoAgentSettings__certificate__filesystemPassword={Password}
 ```
+
+By default, the application looks for a certificate at the follow path: `/etc/bitwarden/key.pfx`.
 
 **OS Certificate Store**
 
