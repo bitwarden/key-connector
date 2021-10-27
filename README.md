@@ -226,6 +226,21 @@ cryptoAgentSettings__certificate__vaultSecretFilePassword={SecretFilePassword}
 
 *These dependencies are free to use.*
 
+### MacOS
+
+MacOS requires updated SSL libraries, otherwise you will receive the error "No usable version of libssl was found".
+
+1. Install [Homebrew](https://brew.sh/)
+2. Install the OpenSSL package:
+    ```bash
+    brew install openssl
+    ```
+3. Set the required environment variables to point to the OpenSSL libraries:
+    ```bash
+    echo 'DYLD_LIBRARY_PATH="/usr/local/opt/openssl@1.1/lib"' >> ~/.zshrc
+    ```
+4. If you are running the Crypto Agent from a terminal, restart your terminal to make sure the updated `.zshrc` settings are applied
+
 ### Recommended Development Tooling
 
 - [Visual Studio](https://www.visualstudio.com/vs/) (Windows and macOS)
