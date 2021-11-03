@@ -157,11 +157,11 @@ The RSA key pair can be provided via certificate configuration. The certificate 
 `.pfx` file. Example:
 
 ```
-openssl req -x509 -newkey rsa:4096 -sha256 -nodes -keyout bwagent.key
-  -out bwagent.crt -subj "/CN=Bitwarden Agent" -days 36500
+openssl req -x509 -newkey rsa:4096 -sha256 -nodes -keyout bwkc.key
+  -out bwkc.crt -subj "/CN=Bitwarden Key Connector" -days 36500
 
-openssl pkcs12 -export -out ./bwagent.pfx -inkey bwagent.key
-  -in bwagent.crt -passout pass:{Password}
+openssl pkcs12 -export -out ./bwkc.pfx -inkey bwkc.key
+  -in bwkc.crt -passout pass:{Password}
 ```
 
 If using the PKCS11 RSA key provider, you will need to make a public key PKCS12 certificate available.
