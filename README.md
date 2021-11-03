@@ -1,23 +1,23 @@
-<a href="https://hub.docker.com/r/bitwarden/crypto-agent" target="_blank">
-  <img src="https://img.shields.io/docker/pulls/bitwarden/crypto-agent.svg" alt="DockerHub" />
+<a href="https://hub.docker.com/r/bitwarden/key-connector" target="_blank">
+  <img src="https://img.shields.io/docker/pulls/bitwarden/key-connector.svg" alt="DockerHub" />
 </a>
 
-# Bitwarden Crypto Agent
+# Bitwarden Key Connector
 
-The Bitwarden Crypto Agent is a self-hosted web application that stores and provides cryptographic keys to Bitwarden
+The Bitwarden Key Connector is a self-hosted web application that stores and provides cryptographic keys to Bitwarden
 clients.
 
-The Crypto Agent project is written in C# using .NET Core with ASP.NET Core. The codebase can be developed, built, run,
+The Key Connector project is written in C# using .NET Core with ASP.NET Core. The codebase can be developed, built, run,
 and deployed cross-platform on Windows, macOS, and Linux distributions.
 
 ## Deploy
 
-The Bitwarden Crypto Agent can be deployed using the pre-built docker container available on
-[DockerHub](https://hub.docker.com/r/bitwarden/crypto-agent).
+The Bitwarden Key Connector can be deployed using the pre-built docker container available on
+[DockerHub](https://hub.docker.com/r/bitwarden/key-connector).
 
 ## Configuration
 
-A variety of configuration options are available for the Bitwarden Crypto Agent.
+A variety of configuration options are available for the Bitwarden Key Connector.
 
 ### Bitwarden Server
 
@@ -25,8 +25,8 @@ By default, the Bitwarden server configuration points to the Bitwarden Cloud end
 self-hosted Bitwarden installation, you will need to configure the web vault and identity server endpoints.
 
 ```
-cryptoAgentSettings__webVaultUri=https://bitwarden.company.com
-cryptoAgentSettings__identityServerUri=https://bitwarden.company.com/identity/
+keyConnectorSettings__webVaultUri=https://bitwarden.company.com
+keyConnectorSettings__identityServerUri=https://bitwarden.company.com/identity/
 ```
 
 ### Database
@@ -37,8 +37,8 @@ from one database provider to another is not supported at this time.
 **JSON File (default)**
 
 ```
-cryptoAgentSettings__database__provider=json
-cryptoAgentSettings__database__jsonFilePath={FilePath}
+keyConnectorSettings__database__provider=json
+keyConnectorSettings__database__jsonFilePath={FilePath}
 ```
 
 By default, the application stores the JSON file at the follow path: `/etc/bitwarden/data.json`.
@@ -46,52 +46,52 @@ By default, the application stores the JSON file at the follow path: `/etc/bitwa
 **Microsoft SQL Server**
 
 ```
-cryptoAgentSettings__database__provider=sqlserver
-cryptoAgentSettings__database__sqlServerConnectionString={ConnectionString}
+keyConnectorSettings__database__provider=sqlserver
+keyConnectorSettings__database__sqlServerConnectionString={ConnectionString}
 ```
 
 **PostgreSQL**
 
 ```
-cryptoAgentSettings__database__provider=postgresql
-cryptoAgentSettings__database__postgreSqlConnectionString={ConnectionString}
+keyConnectorSettings__database__provider=postgresql
+keyConnectorSettings__database__postgreSqlConnectionString={ConnectionString}
 ```
 
 **MySQL/MariaDB**
 
 ```
-cryptoAgentSettings__database__provider=mysql
-cryptoAgentSettings__database__mySqlConnectionString={ConnectionString}
+keyConnectorSettings__database__provider=mysql
+keyConnectorSettings__database__mySqlConnectionString={ConnectionString}
 ```
 
 **SQLite**
 
 ```
-cryptoAgentSettings__database__provider=sqlite
-cryptoAgentSettings__database__sqliteConnectionString={ConnectionString}
+keyConnectorSettings__database__provider=sqlite
+keyConnectorSettings__database__sqliteConnectionString={ConnectionString}
 ```
 
 **MongoDB**
 
 ```
-cryptoAgentSettings__database__provider=mongo
-cryptoAgentSettings__database__mongoConnectionString={ConnectionString}
-cryptoAgentSettings__database__mongoDatabaseName={DatabaseName}
+keyConnectorSettings__database__provider=mongo
+keyConnectorSettings__database__mongoConnectionString={ConnectionString}
+keyConnectorSettings__database__mongoDatabaseName={DatabaseName}
 ```
 
 ### RSA Key
 
-The Bitwarden Crypto Agent uses a RSA key pair to protect user keys at rest. The RSA key pair should be a minimum of
+The Bitwarden Key Connector uses a RSA key pair to protect user keys at rest. The RSA key pair should be a minimum of
 2048 bits in length.
 
-You must configure how the Bitwarden Crypto Agent accesses and utilizes your RSA key pair.
+You must configure how the Bitwarden Key Connector accesses and utilizes your RSA key pair.
 
 **Certificate**
 
 An X509 certificate that contains the RSA key pair.
 
 ```
-cryptoAgentSettings__rsaKey__provider=certificate
+keyConnectorSettings__rsaKey__provider=certificate
 ```
 
 *See additional certificate configuration options below.*
@@ -101,33 +101,33 @@ cryptoAgentSettings__rsaKey__provider=certificate
 You will need to create an Azure Active Directory application that has access to read from the associated Key Vault.
 
 ```
-cryptoAgentSettings__rsaKey__provider=azurekv
-cryptoAgentSettings__rsaKey__azureKeyvaultUri={URI}
-cryptoAgentSettings__rsaKey__azureKeyvaultKeyName={KeyName}
-cryptoAgentSettings__rsaKey__azureKeyvaultAdTenantId={ActiveDirectoryTenantId}
-cryptoAgentSettings__rsaKey__azureKeyvaultAdAppId={ActiveDirectoryAppId}
-cryptoAgentSettings__rsaKey__azureKeyvaultAdSecret={ActiveDirectorySecret}
+keyConnectorSettings__rsaKey__provider=azurekv
+keyConnectorSettings__rsaKey__azureKeyvaultUri={URI}
+keyConnectorSettings__rsaKey__azureKeyvaultKeyName={KeyName}
+keyConnectorSettings__rsaKey__azureKeyvaultAdTenantId={ActiveDirectoryTenantId}
+keyConnectorSettings__rsaKey__azureKeyvaultAdAppId={ActiveDirectoryAppId}
+keyConnectorSettings__rsaKey__azureKeyvaultAdSecret={ActiveDirectorySecret}
 ```
 
 **Google Cloud Key Management**
 
 ```
-cryptoAgentSettings__rsaKey__provider=gcpkms
-cryptoAgentSettings__rsaKey__googleCloudProjectId={ProjectId}
-cryptoAgentSettings__rsaKey__googleCloudLocationId={LocationId}
-cryptoAgentSettings__rsaKey__googleCloudKeyringId={KeyringId}
-cryptoAgentSettings__rsaKey__googleCloudKeyId={KeyId}
-cryptoAgentSettings__rsaKey__googleCloudKeyVersionId={KeyVersionId}
+keyConnectorSettings__rsaKey__provider=gcpkms
+keyConnectorSettings__rsaKey__googleCloudProjectId={ProjectId}
+keyConnectorSettings__rsaKey__googleCloudLocationId={LocationId}
+keyConnectorSettings__rsaKey__googleCloudKeyringId={KeyringId}
+keyConnectorSettings__rsaKey__googleCloudKeyId={KeyId}
+keyConnectorSettings__rsaKey__googleCloudKeyVersionId={KeyVersionId}
 ```
 
 **AWS Key Management Service**
 
 ```
-cryptoAgentSettings__rsaKey__provider=awskms
-cryptoAgentSettings__rsaKey__awsAccessKeyId={AccessKeyId}
-cryptoAgentSettings__rsaKey__awsAccessKeySecret={AccessKeySecret}
-cryptoAgentSettings__rsaKey__awsRegion={RegionName}
-cryptoAgentSettings__rsaKey__awsKeyId={KeyId}
+keyConnectorSettings__rsaKey__provider=awskms
+keyConnectorSettings__rsaKey__awsAccessKeyId={AccessKeyId}
+keyConnectorSettings__rsaKey__awsAccessKeySecret={AccessKeySecret}
+keyConnectorSettings__rsaKey__awsRegion={RegionName}
+keyConnectorSettings__rsaKey__awsKeyId={KeyId}
 ```
 
 **PKCS11**
@@ -135,17 +135,17 @@ cryptoAgentSettings__rsaKey__awsKeyId={KeyId}
 Use a physical HSM device with the PKCS11 provider.
 
 ```
-cryptoAgentSettings__rsaKey__provider=pkcs11
+keyConnectorSettings__rsaKey__provider=pkcs11
 # Available providers: yubihsm, opensc
-cryptoAgentSettings__rsaKey__pkcs11Provider={Provider}
-cryptoAgentSettings__rsaKey__pkcs11SlotTokenSerialNumber={TokenSerialNumber}
+keyConnectorSettings__rsaKey__pkcs11Provider={Provider}
+keyConnectorSettings__rsaKey__pkcs11SlotTokenSerialNumber={TokenSerialNumber}
 # Available user types: user, so, context_specific
-cryptoAgentSettings__rsaKey__pkcs11LoginUserType={LoginUserType}
-cryptoAgentSettings__rsaKey__pkcs11LoginPin={LoginPIN}
+keyConnectorSettings__rsaKey__pkcs11LoginUserType={LoginUserType}
+keyConnectorSettings__rsaKey__pkcs11LoginPin={LoginPIN}
 
 # Locate the private key on the device via label *or* ID.
-cryptoAgentSettings__rsaKey__pkcs11PrivateKeyLabel={PrivateKeyLabel}
-cryptoAgentSettings__rsaKey__pkcs11PrivateKeyId={PrivateKeyId}
+keyConnectorSettings__rsaKey__pkcs11PrivateKeyLabel={PrivateKeyLabel}
+keyConnectorSettings__rsaKey__pkcs11PrivateKeyId={PrivateKeyId}
 ```
 
 *When using the PKCS11 provider to store your private key on an HSM device, the associated public key must be made
@@ -169,9 +169,9 @@ If using the PKCS11 RSA key provider, you will need to make a public key PKCS12 
 **Filesystem (default)**
 
 ```
-cryptoAgentSettings__certificate__provider=filesystem
-cryptoAgentSettings__certificate__filesystemPath={Path}
-cryptoAgentSettings__certificate__filesystemPassword={Password}
+keyConnectorSettings__certificate__provider=filesystem
+keyConnectorSettings__certificate__filesystemPath={Path}
+keyConnectorSettings__certificate__filesystemPassword={Password}
 ```
 
 By default, the application looks for a certificate at the follow path: `/etc/bitwarden/key.pfx`.
@@ -179,18 +179,18 @@ By default, the application looks for a certificate at the follow path: `/etc/bi
 **OS Certificate Store**
 
 ```
-cryptoAgentSettings__certificate__provider=store
-cryptoAgentSettings__certificate__storeThumbprint={Thumbprint}
+keyConnectorSettings__certificate__provider=store
+keyConnectorSettings__certificate__storeThumbprint={Thumbprint}
 ```
 
 **Azure Blob Storage**
 
 ```
-cryptoAgentSettings__certificate__provider=azurestorage
-cryptoAgentSettings__certificate__azureStorageConnectionString={ConnectionString}
-cryptoAgentSettings__certificate__azureStorageContainer={Container}
-cryptoAgentSettings__certificate__azureStorageFileName={FileName}
-cryptoAgentSettings__certificate__azureStorageFilePassword={FilePassword}
+keyConnectorSettings__certificate__provider=azurestorage
+keyConnectorSettings__certificate__azureStorageConnectionString={ConnectionString}
+keyConnectorSettings__certificate__azureStorageContainer={Container}
+keyConnectorSettings__certificate__azureStorageFileName={FileName}
+keyConnectorSettings__certificate__azureStorageFilePassword={FilePassword}
 ```
 
 **Azure Key Vault**
@@ -198,24 +198,24 @@ cryptoAgentSettings__certificate__azureStorageFilePassword={FilePassword}
 You will need to create an Azure Active Directory application that has access to read from the associated Key Vault.
 
 ```
-cryptoAgentSettings__certificate__provider=azurekv
-cryptoAgentSettings__certificate__azureKeyvaultUri={URI}
-cryptoAgentSettings__certificate__azureKeyvaultCertificateName={CertificateName}
-cryptoAgentSettings__certificate__azureKeyvaultAdTenantId={ActiveDirectoryTenantId}
-cryptoAgentSettings__certificate__azureKeyvaultAdAppId={ActiveDirectoryAppId}
-cryptoAgentSettings__certificate__azureKeyvaultAdSecret={ActiveDirectorySecret}
+keyConnectorSettings__certificate__provider=azurekv
+keyConnectorSettings__certificate__azureKeyvaultUri={URI}
+keyConnectorSettings__certificate__azureKeyvaultCertificateName={CertificateName}
+keyConnectorSettings__certificate__azureKeyvaultAdTenantId={ActiveDirectoryTenantId}
+keyConnectorSettings__certificate__azureKeyvaultAdAppId={ActiveDirectoryAppId}
+keyConnectorSettings__certificate__azureKeyvaultAdSecret={ActiveDirectorySecret}
 ```
 
 **HashiCorp Vault**
 
 ```
-cryptoAgentSettings__certificate__provider=vault
-cryptoAgentSettings__certificate__vaultServerUri={ServerURI}
-cryptoAgentSettings__certificate__vaultToken={Token}
-cryptoAgentSettings__certificate__vaultSecretMountPoint={SecretMountPoint}
-cryptoAgentSettings__certificate__vaultSecretPath={SecretPath}
-cryptoAgentSettings__certificate__vaultSecretDataKey={SecretDataKey}
-cryptoAgentSettings__certificate__vaultSecretFilePassword={SecretFilePassword}
+keyConnectorSettings__certificate__provider=vault
+keyConnectorSettings__certificate__vaultServerUri={ServerURI}
+keyConnectorSettings__certificate__vaultToken={Token}
+keyConnectorSettings__certificate__vaultSecretMountPoint={SecretMountPoint}
+keyConnectorSettings__certificate__vaultSecretPath={SecretPath}
+keyConnectorSettings__certificate__vaultSecretDataKey={SecretDataKey}
+keyConnectorSettings__certificate__vaultSecretFilePassword={SecretFilePassword}
 ```
 
 ## Build/Run
@@ -239,7 +239,7 @@ MacOS requires updated SSL libraries, otherwise you will receive the error "No u
     ```bash
     echo 'DYLD_LIBRARY_PATH="/usr/local/opt/openssl@1.1/lib"' >> ~/.zshrc
     ```
-4. If you are running the Crypto Agent from a terminal, restart your terminal to make sure the updated `.zshrc` settings are applied
+4. If you are running the Key Connector from a terminal, restart your terminal to make sure the updated `.zshrc` settings are applied
 
 ### Recommended Development Tooling
 
