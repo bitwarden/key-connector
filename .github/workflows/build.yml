@@ -1,0 +1,59 @@
+---
+
+name: Build
+
+on: push
+
+jobs:
+
+  cloc:
+    name: CLOC
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
+
+      - name: Install cloc
+        run: apt update && apt install cloc -y
+
+      - name: Print lines of code
+        run: |
+          cloc --include-lang \
+          C#,SQL,Razor,"Bourne Shell",PowerShell,HTML,CSS,Sass,JavaScript,TypeScript \
+          --vcs git
+
+
+
+  build-artifacts:
+    name: Build artifacts
+    runs-on: ubuntu-20.04
+    steps:
+
+      - name: Checkout repo
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
+
+      - name: Print environment
+        run: |
+          whoami
+          dotnet --info
+          echo "GitHub ref: $GITHUB_REF"
+          echo "GitHub event: $GITHUB_EVENT"
+
+      - name: Restore/Clean service
+        working-directory: ./src/KeyConnector
+        run: |
+          echo "Restore"
+          dotnet restore
+          echo "Clean"
+          dotnet clean -c "Release" -o obj/build-output/publish
+
+      - name: Publish service
+        working-directory: ./src/KeyConnector
+        run: |
+          echo "Publish"
+          dotnet publish -c "Release" -o obj/build-output/publish
+          cd obj/build-output/publish
+          zip -r KeyConnector.zip .
+          mv KeyConnector.zip ../../../
+          pwd
+          ls -atlh ../../../
