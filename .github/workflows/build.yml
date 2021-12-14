@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
 
       - name: Install cloc
-        run: apt update && apt install cloc -y
+        run: sudo apt update && sudo apt install cloc -y
 
       - name: Print lines of code
         run: |
