@@ -68,36 +68,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
 
-      - name: Login to Azure - Prod Subscription
-        uses: Azure/login@66d2e78565ab7af265d2b627085bc34c73ce6abb
-        with:
-          creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
-
-      - name: Retrieve secrets
-        id: retrieve-secrets
-        uses: Azure/get-keyvault-secrets@b5c723b9ac7870c022b8c35befe620b7009b336f
-        with:
-          keyvault: "bitwarden-prod-kv"
-          secrets: "docker-password,
-            docker-username,
-            dct-delegate-2-repo-passphrase,
-            dct-delegate-2-key"
-
-      - name: Log into Docker
+      - name: Setup DCT
         if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix'
-        env:
-          DOCKER_USERNAME: ${{ steps.retrieve-secrets.outputs.docker-username }}
-          DOCKER_PASSWORD: ${{ steps.retrieve-secrets.outputs.docker-password }}
-        run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        id: setup-dct
+        uses: bitwarden/gh-actions/setup-docker-trust@a8c384a05a974c05c48374c818b004be221d43ff
+        with:
+          azure-creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
+          azure-keyvault-name: "bitwarden-prod-kv"
 
-      - name: Setup Docker Trust
-        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix'
-        env:
-          DCT_DELEGATION_KEY_ID: "c9bde8ec820701516491e5e03d3a6354e7bd66d05fa3df2b0062f68b116dc59c"
-          DCT_DELEGATE_KEY: ${{ steps.retrieve-secrets.outputs.dct-delegate-2-key }}
-        run: |
-          mkdir -p ~/.docker/trust/private
-          echo "$DCT_DELEGATE_KEY" > ~/.docker/trust/private/$DCT_DELEGATION_KEY_ID.key
       - name: Setup service name
         id: setup
         run: |
