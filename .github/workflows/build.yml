@@ -79,7 +79,7 @@ jobs:
       - name: Setup service name
         id: setup
         run: |
-          SERVICE_NAME=$(echo "KeyConnector" | awk '{print tolower($0)}')
+          SERVICE_NAME=$(echo "key-connector" | awk '{print tolower($0)}')
           echo "SERVICE_NAME: $SERVICE_NAME"
           echo "::set-output name=service_name::$SERVICE_NAME"
 
