@@ -98,12 +98,12 @@ jobs:
       #   run: |
       #     mkdir -p ~/.docker/trust/private
       #     echo "$DCT_DELEGATE_KEY" > ~/.docker/trust/private/$DCT_DELEGATION_KEY_ID.key
-      # - name: Setup service name
-      #   id: setup
-      #   run: |
-      #     SERVICE_NAME=$(echo "KeyConnector" | awk '{print tolower($0)}')
-      #     echo "SERVICE_NAME: $SERVICE_NAME"
-      #     echo "::set-output name=service_name::$SERVICE_NAME"
+      - name: Setup service name
+        id: setup
+        run: |
+          SERVICE_NAME=$(echo "KeyConnector" | awk '{print tolower($0)}')
+          echo "SERVICE_NAME: $SERVICE_NAME"
+          echo "::set-output name=service_name::$SERVICE_NAME"
 
       - name: Get build artifact
         uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60 # v2.0.10
