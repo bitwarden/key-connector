@@ -1,11 +1,9 @@
 ---
-
 name: Build
 
 on: push
 
 jobs:
-
   cloc:
     name: CLOC
     runs-on: ubuntu-20.04
@@ -22,13 +20,11 @@ jobs:
           C#,SQL,Razor,"Bourne Shell",PowerShell,HTML,CSS,Sass,JavaScript,TypeScript \
           --vcs git
 
-
-
   build-artifacts:
     name: Build artifacts
     runs-on: ubuntu-20.04
     steps:
-
+    
       - name: Checkout repo
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
 
@@ -57,3 +53,12 @@ jobs:
           mv KeyConnector.zip ../../../
           pwd
           ls -atlh ../../../
+
+      - name: Upload service artifact
+        uses: actions/upload-artifact@ee69f02b3dfdecd58bb31b4d133da38ba6fe3700
+        with:
+          name: KeyConnector.zip
+          path: ./src/KeyConnector/KeyConnector.zip
+          if-no-files-found: error
+
+  
