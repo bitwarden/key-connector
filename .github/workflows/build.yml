@@ -97,14 +97,6 @@ jobs:
         run: |
           docker build -t ${{ steps.setup.outputs.service_name }} \
             ./src/KeyConnector
-      - name: Docker Trust setup
-        if: |
-          (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix')
-        env:
-          DCT_REPO_PASSPHRASE: ${{ steps.retrieve-secrets.outputs.dct-delegate-2-repo-passphrase }}
-        run: |
-          echo "DOCKER_CONTENT_TRUST=1" >> $GITHUB_ENV
-          echo "DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE=$DCT_REPO_PASSPHRASE" >> $GITHUB_ENV
       - name: Tag and Push RC to Docker Hub
         if: (github.ref == 'refs/heads/rc')
         run: |
