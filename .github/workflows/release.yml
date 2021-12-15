@@ -1,0 +1,160 @@
+---
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs: {}
+
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-20.04
+    outputs:
+      release_version: ${{ steps.version.outputs.package }}
+      branch-name: ${{ steps.branch.outputs.branch-name }}
+    steps:
+      - name: Branch check
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix" ]]; then
+            echo "==================================="
+            echo "[!] Can only release from the 'rc' or 'hotfix' branches"
+            echo "==================================="
+            exit 1
+          fi
+      - name: Checkout repo
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579  # v2.4.0
+
+      - name: Check Release Version
+        id: version
+        run: |
+          version=$( grep -o "<Version>.*</Version>" ./src/KeyConnector/KeyConnector.csproj | \
+          grep -o "[0-9]*\.[0-9]*\.[0-9]*")
+          previous_release_tag_version=$(
+            curl -sL https://api.github.com/repos/$GITHUB_REPOSITORY/releases/latest | jq -r ".tag_name"
+          )
+          if [ "v$version" == "$previous_release_tag_version" ]; then
+            echo "[!] Already released v$version. Please bump version to continue"
+            exit 1
+          fi
+          echo "::set-output name=package::$version"
+
+      - name: Get branch name
+        id: branch
+        run: |
+          BRANCH_NAME=$(basename ${{ github.ref }})
+          echo "::set-output name=branch-name::$BRANCH_NAME"
+
+  release-docker:
+    name: Build Docker images
+    runs-on: ubuntu-20.04
+    needs: setup
+    env:
+      _SERVICE_NAME: key-connector
+      _RELEASE_VERSION: ${{ needs.setup.outputs.release_version }}
+      _BRANCH_NAME: ${{ needs.setup.outputs.branch-name }}
+    steps:
+      - name: Print environment
+        run: |
+          whoami
+          docker --version
+          echo "GitHub ref: $GITHUB_REF"
+          echo "GitHub event: $GITHUB_EVENT"
+
+      - name: Setup DCT
+        id: setup-dct
+        uses: bitwarden/gh-actions/setup-docker-trust@a8c384a05a974c05c48374c818b004be221d43ff
+        with:
+          azure-creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
+          azure-keyvault-name: "bitwarden-prod-kv"
+
+      - name: Checkout repo
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579  # v2.4.0
+
+
+      - name: Pull latest selfhost image
+        run: docker pull bitwarden/$_SERVICE_NAME:$_BRANCH_NAME
+
+      - name: Tag version and latest
+        run: |
+          docker tag bitwarden/$_SERVICE_NAME:$_BRANCH_NAME bitwarden/$_SERVICE_NAME:$_RELEASE_VERSION
+          docker tag bitwarden/$_SERVICE_NAME:$_BRANCH_NAME bitwarden/$_SERVICE_NAME:latest
+
+      - name: List Docker images
+        run: docker images
+
+      - name: Push version and latest image
+        env:
+          DOCKER_CONTENT_TRUST: 1
+          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ steps.setup-dct.outputs.dct-delegate-repo-passphrase }}
+        run: |
+          docker push bitwarden/$_SERVICE_NAME:$_RELEASE_VERSION
+          docker push bitwarden/$_SERVICE_NAME:latest
+
+      - name: Log out of Docker
+        run: docker logout
+
+
+  release-github:
+    name: Create GitHub Release
+    runs-on: ubuntu-20.04
+    needs: setup
+    steps:
+      - name: Create release
+        uses: ncipollo/release-action@40bb172bd05f266cf9ba4ff965cb61e9ee5f6d01  # v1.9.0
+        with:
+          commit: ${{ github.sha }}
+          tag: "v${{ needs.setup.outputs.release_version }}"
+          name: "Version ${{ needs.setup.outputs.release_version }}"
+          body: "<insert release notes here>"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: true
+
+
+  check-failures:
+    name: Check for failures
+    if: always()
+    runs-on: ubuntu-20.04
+    needs:
+      - release-docker
+      - release-github
+      - setup
+    steps:
+      - name: Check if any job failed
+        if: |
+          github.ref == 'refs/heads/master'
+          || github.ref == 'refs/heads/rc'
+          || github.ref == 'refs/heads/hotfix'
+        env:
+          RELEASE_DOCKER_STATUS: ${{ needs.release-docker.result }}
+          RELEASE_GITHUB_STATUS: ${{ needs.release-github.result }}
+          SETUP_STATUS: ${{ needs.setup.result }}
+        run: |
+          if [ "$RELEASE_DOCKER_STATUS" = "failure" ]; then
+            exit 1
+          elif [ "$RELEASE_GITHUB_STATUS" = "failure" ]; then
+            exit 1
+          elif [ "$SETUP_STATUS" = "failure" ]; then
+            exit 1
+          fi
+
+      - name: Login to Azure - Prod Subscription
+        uses: Azure/login@77f1b2e3fb80c0e8645114159d17008b8a2e475a
+        if: failure()
+        with:
+          creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
+
+      - name: Retrieve secrets
+        id: retrieve-secrets
+        uses: Azure/get-keyvault-secrets@80ccd3fafe5662407cc2e55f202ee34bfff8c403  # v1
+        if: failure()
+        with:
+          keyvault: "bitwarden-prod-kv"
+          secrets: "devops-alerts-slack-webhook-url"
+
+      - name: Notify Slack on failure
+        uses: act10ns/slack@e4e71685b9b239384b0f676a63c32367f59c2522  # v1.2.2
+        if: failure()
+        env:
+          SLACK_WEBHOOK_URL: ${{ steps.retrieve-secrets.outputs.devops-alerts-slack-webhook-url }}
+        with:
+          status: ${{ job.status }}

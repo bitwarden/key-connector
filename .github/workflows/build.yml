@@ -1,0 +1,130 @@
+---
+name: Build
+
+on: push
+
+jobs:
+  cloc:
+    name: CLOC
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579  # v2.4.0
+
+      - name: Install cloc
+        run: sudo apt update && sudo apt install cloc -y
+
+      - name: Print lines of code
+        run: |
+          cloc --include-lang \
+          C#,SQL,Razor,"Bourne Shell",PowerShell,HTML,CSS,Sass,JavaScript,TypeScript \
+          --vcs git
+
+
+  build-artifacts:
+    name: Build artifacts
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579  # v2.4.0
+
+      - name: Print environment
+        run: |
+          whoami
+          dotnet --info
+          echo "GitHub ref: $GITHUB_REF"
+          echo "GitHub event: $GITHUB_EVENT"
+
+      - name: Restore/Clean service
+        working-directory: ./src/KeyConnector
+        run: |
+          echo "Restore"
+          dotnet restore
+          echo "Clean"
+          dotnet clean -c "Release" -o obj/build-output/publish
+
+      - name: Publish service
+        working-directory: ./src/KeyConnector
+        run: |
+          echo "Publish"
+          dotnet publish -c "Release" -o obj/build-output/publish
+          cd obj/build-output/publish
+          zip -r KeyConnector.zip .
+          mv KeyConnector.zip ../../../
+          pwd
+          ls -atlh ../../../
+
+      - name: Upload service artifact
+        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2  # v2.3.1
+        with:
+          name: KeyConnector.zip
+          path: ./src/KeyConnector/KeyConnector.zip
+          if-no-files-found: error
+
+
+  build-docker:
+    name: Build Docker images
+    runs-on: ubuntu-20.04
+    needs: build-artifacts
+    env:
+      _SERVICE_NAME: key-connector
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579  # v2.4.0
+
+      - name: Setup DCT
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix'
+        uses: bitwarden/gh-actions/setup-docker-trust@a8c384a05a974c05c48374c818b004be221d43ff
+        with:
+          azure-creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
+          azure-keyvault-name: "bitwarden-prod-kv"
+
+      - name: Setup service name
+        id: setup
+        run: |
+          SERVICE_NAME="key-connector"
+          echo "SERVICE_NAME: $SERVICE_NAME"
+          echo "::set-output name=service_name::$SERVICE_NAME"
+
+      - name: Get build artifact
+        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60  # v2.0.10
+        with:
+          name: KeyConnector.zip
+
+      - name: Setup build artifact
+        run: |
+          mkdir -p ./src/KeyConnector/obj/build-output/publish
+          unzip KeyConnector.zip \
+            -d ./src/KeyConnector/obj/build-output/publish
+
+      - name: Build Docker images
+        run: |
+          docker build -t ${{ env._SERVICE_NAME }} \
+            ./src/KeyConnector
+
+      - name: Tag and Push RC to Docker Hub
+        if: (github.ref == 'refs/heads/rc')
+        run: |
+          docker tag ${{ env._SERVICE_NAME }} \
+            bitwarden/${{ env._SERVICE_NAME }}:rc
+          docker push bitwarden/${{ env._SERVICE_NAME }}:rc
+
+      - name: Tag and Push Hotfix to Docker Hub
+        if: (github.ref == 'refs/heads/hotfix')
+        run: |
+          docker tag ${{ env._SERVICE_NAME }} \
+            bitwarden/${{ env._SERVICE_NAME }}:hotfix
+          docker push bitwarden/${{ env._SERVICE_NAME }}:hotfix
+
+      - name: Tag and Push Dev to Docker Hub
+        if: (github.ref == 'refs/heads/master')
+        run: |
+          docker tag ${{ env._SERVICE_NAME }} \
+            bitwarden/${{ env._SERVICE_NAME }}:dev
+          docker push bitwarden/${{ env._SERVICE_NAME }}:dev
+
+      - name: Log out of Docker and disable Docker Notary
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix'
+        run: |
+          docker logout
+          echo "DOCKER_CONTENT_TRUST=0" >> $GITHUB_ENV
