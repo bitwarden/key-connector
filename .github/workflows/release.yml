@@ -21,7 +21,6 @@ jobs:
             echo "==================================="
             exit 1
           fi
-          
       - name: Checkout repo
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579  # v2.4.0
 
@@ -121,7 +120,10 @@ jobs:
       - setup
     steps:
       - name: Check if any job failed
-        if: ${{ (github.ref == 'refs/heads/master') || (github.ref == 'refs/heads/rc') || (github.ref == 'refs/heads/hotfix') }}
+        if: |
+          github.ref == 'refs/heads/master'
+          || github.ref == 'refs/heads/rc'
+          || github.ref == 'refs/heads/hotfix'
         env:
           RELEASE_DOCKER_STATUS: ${{ needs.release-docker.result }}
           RELEASE_GITHUB_STATUS: ${{ needs.release-github.result }}
