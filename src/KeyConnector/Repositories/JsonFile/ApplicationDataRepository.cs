@@ -1,5 +1,5 @@
-﻿using JsonFlatFileDataStore;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using JsonFlatFileDataStore;
 
 namespace Bit.KeyConnector.Repositories.JsonFile
 {

@@ -1,5 +1,5 @@
-﻿using Bit.KeyConnector.Models;
-using System;
+﻿using System;
+using Bit.KeyConnector.Models;
 
 namespace Bit.KeyConnector.Repositories
 {

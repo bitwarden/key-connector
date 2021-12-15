@@ -1,6 +1,6 @@
-﻿using MongoDB.Bson;
+﻿using System.Threading.Tasks;
+using MongoDB.Bson;
 using MongoDB.Driver;
-using System.Threading.Tasks;
 
 namespace Bit.KeyConnector.Repositories.Mongo
 {

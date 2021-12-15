@@ -1,7 +1,7 @@
-﻿using Azure.Storage.Blobs;
-using System.IO;
+﻿using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs;
 
 namespace Bit.KeyConnector.Services
 {

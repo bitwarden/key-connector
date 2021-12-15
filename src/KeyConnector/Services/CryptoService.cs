@@ -1,6 +1,6 @@
-﻿using Bit.KeyConnector.Repositories;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Bit.KeyConnector.Repositories;
 
 namespace Bit.KeyConnector.Services
 {

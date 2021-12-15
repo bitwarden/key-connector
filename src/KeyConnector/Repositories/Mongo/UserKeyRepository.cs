@@ -1,7 +1,7 @@
-﻿using Bit.KeyConnector.Models;
-using MongoDB.Driver;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Bit.KeyConnector.Models;
+using MongoDB.Driver;
 
 namespace Bit.KeyConnector.Repositories.Mongo
 {

@@ -1,9 +1,9 @@
-﻿using Amazon;
-using Amazon.KeyManagementService;
-using Amazon.KeyManagementService.Model;
-using System.IO;
+﻿using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Amazon;
+using Amazon.KeyManagementService;
+using Amazon.KeyManagementService.Model;
 
 namespace Bit.KeyConnector.Services
 {
