@@ -64,13 +64,14 @@ jobs:
     name: Build Docker images
     runs-on: ubuntu-20.04
     needs: build-artifacts
+    env:
+      _SERVICE_NAME: key-connector
     steps:
       - name: Checkout repo
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
 
       - name: Setup DCT
         if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix'
-        id: setup-dct
         uses: bitwarden/gh-actions/setup-docker-trust@a8c384a05a974c05c48374c818b004be221d43ff
         with:
           azure-creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
@@ -96,29 +97,29 @@ jobs:
 
       - name: Build Docker images
         run: |
-          docker build -t ${{ steps.setup.outputs.service_name }} \
+          docker build -t ${{ env._SERVICE_NAME }} \
             ./src/KeyConnector
 
       - name: Tag and Push RC to Docker Hub
         if: (github.ref == 'refs/heads/rc')
         run: |
-          docker tag ${{ steps.setup.outputs.service_name }} \
-            bitwarden/${{ steps.setup.outputs.service_name }}:rc
-          docker push bitwarden/${{ steps.setup.outputs.service_name }}:rc
+          docker tag ${{ env._SERVICE_NAME }} \
+            bitwarden/${{ env._SERVICE_NAME }}:rc
+          docker push bitwarden/${{ env._SERVICE_NAME }}:rc
 
       - name: Tag and Push Hotfix to Docker Hub
         if: (github.ref == 'refs/heads/hotfix')
         run: |
-          docker tag ${{ steps.setup.outputs.service_name }} \
-            bitwarden/${{ steps.setup.outputs.service_name }}:hotfix
-          docker push bitwarden/${{ steps.setup.outputs.service_name }}:hotfix
+          docker tag ${{ env._SERVICE_NAME }} \
+            bitwarden/${{ env._SERVICE_NAME }}:hotfix
+          docker push bitwarden/${{ env._SERVICE_NAME }}:hotfix
 
       - name: Tag and Push Dev to Docker Hub
         if: (github.ref == 'refs/heads/master')
         run: |
-          docker tag ${{ steps.setup.outputs.service_name }} \
-            bitwarden/${{ steps.setup.outputs.service_name }}:dev
-          docker push bitwarden/${{ steps.setup.outputs.service_name }}:dev
+          docker tag ${{ env._SERVICE_NAME }} \
+            bitwarden/${{ env._SERVICE_NAME }}:dev
+          docker push bitwarden/${{ env._SERVICE_NAME }}:dev
 
       - name: Log out of Docker and disable Docker Notary
         if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix'

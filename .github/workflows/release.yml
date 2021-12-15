@@ -47,9 +47,9 @@ jobs:
   release-docker:
     name: Build Docker images
     runs-on: ubuntu-20.04
-    needs:
-      - setup
+    needs: setup
     env:
+      _SERVICE_NAME: key-connector
       _RELEASE_VERSION: ${{ needs.setup.outputs.release_version }}
       _BRANCH_NAME: ${{ needs.setup.outputs.branch-name }}
     steps:
@@ -70,24 +70,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
 
-      - name: Setup service name
-        id: setup
-        run: |
-          SERVICE_NAME="key-connector"
-          echo "SERVICE_NAME: $SERVICE_NAME"
-          echo "::set-output name=service_name::$SERVICE_NAME"
 
       - name: Pull latest selfhost image
-        env:
-          SERVICE_NAME: ${{ steps.setup.outputs.service_name }}
-        run: docker pull bitwarden/$SERVICE_NAME:$_BRANCH_NAME
+        run: docker pull bitwarden/$_SERVICE_NAME:$_BRANCH_NAME
 
       - name: Tag version and latest
-        env:
-          SERVICE_NAME: ${{ steps.setup.outputs.service_name }}
         run: |
-          docker tag bitwarden/$SERVICE_NAME:$_BRANCH_NAME bitwarden/$SERVICE_NAME:$_RELEASE_VERSION
-          docker tag bitwarden/$SERVICE_NAME:$_BRANCH_NAME bitwarden/$SERVICE_NAME:latest
+          docker tag bitwarden/$_SERVICE_NAME:$_BRANCH_NAME bitwarden/$_SERVICE_NAME:$_RELEASE_VERSION
+          docker tag bitwarden/$_SERVICE_NAME:$_BRANCH_NAME bitwarden/$_SERVICE_NAME:latest
 
       - name: List Docker images
         run: docker images
@@ -96,10 +86,9 @@ jobs:
         env:
           DOCKER_CONTENT_TRUST: 1
           DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ steps.setup-dct.outputs.dct-delegate-repo-passphrase }}
-          SERVICE_NAME: ${{ steps.setup.outputs.service_name }}
         run: |
-          docker push bitwarden/$SERVICE_NAME:$_RELEASE_VERSION
-          docker push bitwarden/$SERVICE_NAME:latest
+          docker push bitwarden/$_SERVICE_NAME:$_RELEASE_VERSION
+          docker push bitwarden/$_SERVICE_NAME:latest
 
       - name: Log out of Docker
         run: docker logout
@@ -107,8 +96,7 @@ jobs:
   release-github:
     name: Create GitHub Release
     runs-on: ubuntu-20.04
-    needs:
-      - setup
+    needs: setup
     steps:
       - name: Create release
         uses: ncipollo/release-action@40bb172bd05f266cf9ba4ff965cb61e9ee5f6d01
@@ -130,7 +118,7 @@ jobs:
       - setup
     steps:
       - name: Check if any job failed
-        if: ${{ (github.ref == 'refs/heads/master') || (github.ref == 'refs/heads/rc') }}
+        if: ${{ (github.ref == 'refs/heads/master') || (github.ref == 'refs/heads/rc') || (github.ref == 'refs/heads/hotfix') }}
         env:
           RELEASE_DOCKER_STATUS: ${{ needs.release-docker.result }}
           RELEASE_GITHUB_STATUS: ${{ needs.release-github.result }}
