@@ -54,7 +54,7 @@ jobs:
           ls -atlh ../../../
 
       - name: Upload service artifact
-        uses: actions/upload-artifact@ee69f02b3dfdecd58bb31b4d133da38ba6fe3700
+        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2
         with:
           name: KeyConnector.zip
           path: ./src/KeyConnector/KeyConnector.zip
@@ -79,7 +79,7 @@ jobs:
       - name: Setup service name
         id: setup
         run: |
-          SERVICE_NAME=$(echo "key-connector" | awk '{print tolower($0)}')
+          SERVICE_NAME="key-connector"
           echo "SERVICE_NAME: $SERVICE_NAME"
           echo "::set-output name=service_name::$SERVICE_NAME"
 
