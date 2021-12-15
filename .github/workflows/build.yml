@@ -20,6 +20,7 @@ jobs:
           C#,SQL,Razor,"Bourne Shell",PowerShell,HTML,CSS,Sass,JavaScript,TypeScript \
           --vcs git
 
+
   build-artifacts:
     name: Build artifacts
     runs-on: ubuntu-20.04
@@ -59,6 +60,7 @@ jobs:
           name: KeyConnector.zip
           path: ./src/KeyConnector/KeyConnector.zip
           if-no-files-found: error
+
 
   build-docker:
     name: Build Docker images

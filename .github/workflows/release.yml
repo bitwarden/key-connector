@@ -21,6 +21,7 @@ jobs:
             echo "==================================="
             exit 1
           fi
+          
       - name: Checkout repo
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579  # v2.4.0
 
@@ -93,6 +94,7 @@ jobs:
       - name: Log out of Docker
         run: docker logout
 
+
   release-github:
     name: Create GitHub Release
     runs-on: ubuntu-20.04
@@ -107,6 +109,7 @@ jobs:
           body: "<insert release notes here>"
           token: ${{ secrets.GITHUB_TOKEN }}
           draft: true
+
 
   check-failures:
     name: Check for failures
