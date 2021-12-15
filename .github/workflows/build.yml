@@ -93,28 +93,33 @@ jobs:
           mkdir -p ./src/KeyConnector/obj/build-output/publish
           unzip KeyConnector.zip \
             -d ./src/KeyConnector/obj/build-output/publish
+
       - name: Build Docker images
         run: |
           docker build -t ${{ steps.setup.outputs.service_name }} \
             ./src/KeyConnector
+
       - name: Tag and Push RC to Docker Hub
         if: (github.ref == 'refs/heads/rc')
         run: |
           docker tag ${{ steps.setup.outputs.service_name }} \
             bitwarden/${{ steps.setup.outputs.service_name }}:rc
           docker push bitwarden/${{ steps.setup.outputs.service_name }}:rc
+
       - name: Tag and Push Hotfix to Docker Hub
         if: (github.ref == 'refs/heads/hotfix')
         run: |
           docker tag ${{ steps.setup.outputs.service_name }} \
             bitwarden/${{ steps.setup.outputs.service_name }}:hotfix
           docker push bitwarden/${{ steps.setup.outputs.service_name }}:hotfix
+
       - name: Tag and Push Dev to Docker Hub
         if: (github.ref == 'refs/heads/master')
         run: |
           docker tag ${{ steps.setup.outputs.service_name }} \
             bitwarden/${{ steps.setup.outputs.service_name }}:dev
           docker push bitwarden/${{ steps.setup.outputs.service_name }}:dev
+
       - name: Log out of Docker and disable Docker Notary
         if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix'
         run: |
