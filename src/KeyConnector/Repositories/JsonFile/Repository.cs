@@ -1,8 +1,8 @@
-﻿using Bit.KeyConnector.Models;
-using JsonFlatFileDataStore;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Bit.KeyConnector.Models;
+using JsonFlatFileDataStore;
 
 namespace Bit.KeyConnector.Repositories.JsonFile
 {

@@ -1,8 +1,8 @@
-﻿using Google.Cloud.Kms.V1;
-using Google.Protobuf;
-using System;
+﻿using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Google.Cloud.Kms.V1;
+using Google.Protobuf;
 
 namespace Bit.KeyConnector.Services
 {

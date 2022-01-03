@@ -226,6 +226,15 @@ keyConnectorSettings__certificate__vaultSecretFilePassword={SecretFilePassword}
 
 *These dependencies are free to use.*
 
+### Format
+
+We use dotnet-format to apply our code style.
+
+```powershell
+dotnet tool restore
+dotnet tool run dotnet-format
+```
+
 ### MacOS
 
 MacOS requires updated SSL libraries, otherwise you will receive the error "No usable version of libssl was found".

@@ -1,8 +1,8 @@
-﻿using Azure.Identity;
+﻿using System;
+using System.Threading.Tasks;
+using Azure.Identity;
 using Azure.Security.KeyVault.Keys;
 using Azure.Security.KeyVault.Keys.Cryptography;
-using System;
-using System.Threading.Tasks;
 
 namespace Bit.KeyConnector.Services
 {

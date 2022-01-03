@@ -1,7 +1,7 @@
-﻿using Bit.KeyConnector.Models;
-using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Bit.KeyConnector.Models;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Bit.KeyConnector.Repositories.EntityFramework
 {

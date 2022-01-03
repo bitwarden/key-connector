@@ -1,4 +1,7 @@
-﻿using Bit.KeyConnector.Repositories;
+﻿using System;
+using System.Globalization;
+using System.Security.Claims;
+using Bit.KeyConnector.Repositories;
 using Bit.KeyConnector.Services;
 using IdentityModel;
 using IdentityServer4.AccessTokenValidation;
@@ -10,9 +13,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using System;
-using System.Globalization;
-using System.Security.Claims;
 
 namespace Bit.KeyConnector
 {
