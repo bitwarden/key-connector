@@ -21,6 +21,7 @@ jobs:
         run: |
           git switch -c version_bump_${{ github.event.inputs.version_number }}
           git push -u origin version_bump_${{ github.event.inputs.version_number }}
+          
       - name: Checkout Version Branch
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
         with:
