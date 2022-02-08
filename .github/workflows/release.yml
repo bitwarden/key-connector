@@ -93,7 +93,7 @@ jobs:
 
       - name: Push version and latest image
         env:
-          DOCKER_CONTENT_TRUST: 1
+#           DOCKER_CONTENT_TRUST: 1
           DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ steps.setup-dct.outputs.dct-delegate-repo-passphrase }}
         run: |
           docker push bitwarden/$_SERVICE_NAME:$_RELEASE_VERSION
