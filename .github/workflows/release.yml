@@ -12,6 +12,7 @@ on:
         options:
           - Initial Release
           - Redeploy
+          - Dry Run
 
 jobs:
   setup:
@@ -22,6 +23,7 @@ jobs:
       branch-name: ${{ steps.branch.outputs.branch-name }}
     steps:
       - name: Branch check
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
         run: |
           if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix" ]]; then
             echo "==================================="
@@ -61,6 +63,7 @@ jobs:
       _SERVICE_NAME: key-connector
       _RELEASE_VERSION: ${{ needs.setup.outputs.release_version }}
       _BRANCH_NAME: ${{ needs.setup.outputs.branch-name }}
+      _RELEASE_OPTION: ${{ github.event.inputs.release_type }}
     steps:
       - name: Print environment
         run: |
@@ -68,6 +71,7 @@ jobs:
           docker --version
           echo "GitHub ref: $GITHUB_REF"
           echo "GitHub event: $GITHUB_EVENT"
+          echo "Github Release Option: $_RELEASE_OPTION"
 
       - name: Setup DCT
         id: setup-dct
@@ -81,17 +85,27 @@ jobs:
 
 
       - name: Pull latest selfhost image
-        run: docker pull bitwarden/$_SERVICE_NAME:$_BRANCH_NAME
+        run: |
+          if [[ "${{ github.event.inputs.release_type }}" == "Dry Run" ]]; then
+            docker pull bitwarden/$_SERVICE_NAME:latest
+          else
+            docker pull bitwarden/$_SERVICE_NAME:$_BRANCH_NAME
+          fi
 
       - name: Tag version and latest
         run: |
-          docker tag bitwarden/$_SERVICE_NAME:$_BRANCH_NAME bitwarden/$_SERVICE_NAME:$_RELEASE_VERSION
-          docker tag bitwarden/$_SERVICE_NAME:$_BRANCH_NAME bitwarden/$_SERVICE_NAME:latest
+          if [[ "${{ github.event.inputs.release_type }}" == "Dry Run" ]]; then
+            docker tag bitwarden/$_SERVICE_NAME:latest bitwarden/$_SERVICE_NAME:dryrun
+          else
+            docker tag bitwarden/$_SERVICE_NAME:$_BRANCH_NAME bitwarden/$_SERVICE_NAME:$_RELEASE_VERSION
+            docker tag bitwarden/$_SERVICE_NAME:$_BRANCH_NAME bitwarden/$_SERVICE_NAME:latest
+          fi
 
       - name: List Docker images
         run: docker images
 
       - name: Push version and latest image
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
         env:
           DOCKER_CONTENT_TRUST: 1
           DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ steps.setup-dct.outputs.dct-delegate-repo-passphrase }}
@@ -105,6 +119,7 @@ jobs:
 
   release-github:
     name: Create GitHub Release
+    if: ${{ github.event.inputs.release_type != 'Dry Run' }}
     runs-on: ubuntu-20.04
     needs: setup
     steps:
@@ -147,21 +162,21 @@ jobs:
           fi
 
       - name: Login to Azure - Prod Subscription
-        uses: Azure/login@77f1b2e3fb80c0e8645114159d17008b8a2e475a
+        uses: Azure/login@1f63701bf3e6892515f1b7ce2d2bf1708b46beaf
         if: failure()
         with:
           creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
 
       - name: Retrieve secrets
         id: retrieve-secrets
-        uses: Azure/get-keyvault-secrets@80ccd3fafe5662407cc2e55f202ee34bfff8c403  # v1
+        uses: Azure/get-keyvault-secrets@64af23c7cf243996cd6ec3b15a6957947935c54b  # v1
         if: failure()
         with:
           keyvault: "bitwarden-prod-kv"
           secrets: "devops-alerts-slack-webhook-url"
 
       - name: Notify Slack on failure
-        uses: act10ns/slack@e4e71685b9b239384b0f676a63c32367f59c2522  # v1.2.2
+        uses: act10ns/slack@da3191ebe2e67f49b46880b4633f5591a96d1d33  # v1.5.1
         if: failure()
         env:
           SLACK_WEBHOOK_URL: ${{ steps.retrieve-secrets.outputs.devops-alerts-slack-webhook-url }}
