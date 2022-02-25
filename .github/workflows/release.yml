@@ -90,6 +90,7 @@ jobs:
             docker pull bitwarden/$_SERVICE_NAME:latest
           else
             docker pull bitwarden/$_SERVICE_NAME:$_BRANCH_NAME
+          fi
 
       - name: Tag version and latest
         run: |
