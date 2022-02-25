@@ -1,7 +1,10 @@
 ---
 name: Build
 
-on: push
+on:
+  push:
+    paths-ignore:
+      - '.github/workflows/**'
 
 jobs:
   cloc:
