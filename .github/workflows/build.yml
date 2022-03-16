@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repo
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579  # v2.4.0
+        uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846
 
       - name: Install cloc
         run: sudo apt update && sudo apt install cloc -y
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repo
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579  # v2.4.0
+        uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846
 
       - name: Print environment
         run: |
@@ -58,7 +58,7 @@ jobs:
           ls -atlh ../../../
 
       - name: Upload service artifact
-        uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2  # v2.3.1
+        uses: actions/upload-artifact@6673cd052c4cd6fcf4b4e6e60ea986c889389535
         with:
           name: KeyConnector.zip
           path: ./src/KeyConnector/KeyConnector.zip
@@ -73,7 +73,7 @@ jobs:
       _SERVICE_NAME: key-connector
     steps:
       - name: Checkout repo
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579  # v2.4.0
+        uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846
 
       - name: Setup DCT
         if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix'
@@ -83,7 +83,7 @@ jobs:
           azure-keyvault-name: "bitwarden-prod-kv"
 
       - name: Get build artifact
-        uses: actions/download-artifact@3be87be14a055c47b01d3bd88f8fe02320a9bb60  # v2.0.10
+        uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741
         with:
           name: KeyConnector.zip
 
