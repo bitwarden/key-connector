@@ -107,10 +107,13 @@ namespace Bit.KeyConnector.Services
                 }
                 else
                 {
-                    _symmetricKey = await _cryptoFunctionService.GetRandomBytesAsync(32);
+                    var newSymmetricKey = await _cryptoFunctionService.GetRandomBytesAsync(32);
                     var decodedEncKey = await RsaEncryptAsync(_symmetricKey);
                     encKey = Convert.ToBase64String(decodedEncKey);
                     await _applicationDataRepository.UpdateSymmetricKeyAsync(encKey);
+
+                    // Only save in memory after successfully saving to database
+                    _symmetricKey = newSymmetricKey;
                 }
             }
 
