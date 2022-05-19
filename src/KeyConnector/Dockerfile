@@ -26,6 +26,6 @@ COPY obj/build-output/publish .
 COPY entrypoint.sh /
 RUN chmod +x /entrypoint.sh
 
-HEALTHCHECK CMD curl -f http://localhost:5000/alive || exit 1
+HEALTHCHECK CMD curl -f http://localhost:5000/health || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]

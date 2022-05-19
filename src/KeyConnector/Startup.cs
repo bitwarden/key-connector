@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Serilog;
 
 namespace Bit.KeyConnector
@@ -52,6 +53,9 @@ namespace Bit.KeyConnector
             {
                 services.AddHostedService<HostedServices.DatabaseMigrationHostedService>();
             }
+
+            services.AddHealthChecks()
+                .AddCheck<RsaHealthCheckService>("RsaHealthCheckService");
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, KeyConnectorSettings settings)
@@ -69,7 +73,10 @@ namespace Bit.KeyConnector
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints => endpoints.MapDefaultControllerRoute());
+            app.UseEndpoints(endpoints => {
+                endpoints.MapDefaultControllerRoute();
+                endpoints.MapHealthChecks("~/health").AllowAnonymous();
+            });
         }
 
         private bool AddDatabase(IServiceCollection services, KeyConnectorSettings settings)
