@@ -108,7 +108,7 @@ namespace Bit.KeyConnector.Services
                 else
                 {
                     var newSymmetricKey = await _cryptoFunctionService.GetRandomBytesAsync(32);
-                    var decodedEncKey = await RsaEncryptAsync(_symmetricKey);
+                    var decodedEncKey = await RsaEncryptAsync(newSymmetricKey);
 
                     if (decodedEncKey == null)
                     {
