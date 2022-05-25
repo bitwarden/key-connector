@@ -109,6 +109,12 @@ namespace Bit.KeyConnector.Services
                 {
                     var newSymmetricKey = await _cryptoFunctionService.GetRandomBytesAsync(32);
                     var decodedEncKey = await RsaEncryptAsync(_symmetricKey);
+
+                    if (decodedEncKey == null)
+                    {
+                        throw new Exception("RSA encryption failed. Your RSA key may not be configured properly.");
+                    }
+
                     encKey = Convert.ToBase64String(decodedEncKey);
                     await _applicationDataRepository.UpdateSymmetricKeyAsync(encKey);
 
