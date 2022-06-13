@@ -5,6 +5,7 @@ on:
   push:
     paths-ignore:
       - '.github/workflows/**'
+  workflow_dispatch:
 
 jobs:
   cloc:
@@ -76,7 +77,7 @@ jobs:
         uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846
 
       - name: Setup DCT
-        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix'
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix-rc'
         uses: bitwarden/gh-actions/setup-docker-trust@a8c384a05a974c05c48374c818b004be221d43ff
         with:
           azure-creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
@@ -106,7 +107,7 @@ jobs:
           docker push bitwarden/${{ env._SERVICE_NAME }}:rc
 
       - name: Tag and Push Hotfix to Docker Hub
-        if: (github.ref == 'refs/heads/hotfix')
+        if: (github.ref == 'refs/heads/hotfix-rc')
         run: |
           docker tag ${{ env._SERVICE_NAME }} \
             bitwarden/${{ env._SERVICE_NAME }}:hotfix
@@ -120,7 +121,7 @@ jobs:
           docker push bitwarden/${{ env._SERVICE_NAME }}:dev
 
       - name: Log out of Docker and disable Docker Notary
-        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix'
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix-rc'
         run: |
           docker logout
           echo "DOCKER_CONTENT_TRUST=0" >> $GITHUB_ENV
