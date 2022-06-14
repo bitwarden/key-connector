@@ -218,6 +218,6 @@ keyConnectorSettings__certificate__vaultSecretDataKey={SecretDataKey}
 keyConnectorSettings__certificate__vaultSecretFilePassword={SecretFilePassword}
 ```
 
-### Developer Documentation
+## Developer Documentation
 
 Please refer to the [Key Connector section](https://contributing.bitwarden.com/enterprise/key-connector/) of the [Contributing Documentation](https://contributing.bitwarden.com/) for build instructions, recommended tooling, code style tips, and lots of other great information to get you started.
