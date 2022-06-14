@@ -1,0 +1,7 @@
+secrets.json
+database.json
+
+# Development keys
+*.key
+*.crt
+*.pfx
