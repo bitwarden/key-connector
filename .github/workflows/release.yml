@@ -98,9 +98,9 @@ jobs:
 
       - name: Push version and latest image
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
-        # env:
-        #   DOCKER_CONTENT_TRUST: 1
-        #   DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ steps.setup-dct.outputs.dct-delegate-repo-passphrase }}
+        env:
+          DOCKER_CONTENT_TRUST: 1
+          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ steps.setup-dct.outputs.dct-delegate-repo-passphrase }}
         run: |
           docker push bitwarden/$_SERVICE_NAME:$_RELEASE_VERSION
           docker push bitwarden/$_SERVICE_NAME:latest
