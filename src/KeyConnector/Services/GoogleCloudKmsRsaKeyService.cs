@@ -26,14 +26,14 @@ namespace Bit.KeyConnector.Services
 
         public async Task<byte[]> EncryptAsync(byte[] data)
         {
-            var result = await _keyManagementServiceClient.EncryptAsync(_cryptoKeyName, ByteString.CopyFrom(data));
-            return result.Ciphertext.ToByteArray();
-
+            var publicKey = await this.GetRsaPublicKeyAsync();
+            var result = publicKey.Encrypt(data, RSAEncryptionPadding.OaepSHA256);
+            return result;
         }
 
         public async Task<byte[]> DecryptAsync(byte[] data)
         {
-            var result = await _keyManagementServiceClient.DecryptAsync(_cryptoKeyName, ByteString.CopyFrom(data));
+            var result = await _keyManagementServiceClient.AsymmetricDecryptAsync(_cryptoKeyVersionName, ByteString.CopyFrom(data));
             return result.Plaintext.ToByteArray();
         }
 
