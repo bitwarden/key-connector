@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Google.Cloud.Kms.V1;
@@ -26,7 +26,7 @@ namespace Bit.KeyConnector.Services
 
         public async Task<byte[]> EncryptAsync(byte[] data)
         {
-            var publicKey = await this.GetRsaPublicKeyAsync();
+            var publicKey = await GetRsaPublicKeyAsync();
             var result = publicKey.Encrypt(data, RSAEncryptionPadding.OaepSHA256);
             return result;
         }
