@@ -9,16 +9,12 @@ namespace Bit.KeyConnector.Services
     public class GoogleCloudKmsRsaKeyService : IRsaKeyService
     {
         private readonly KeyManagementServiceClient _keyManagementServiceClient;
-        private readonly CryptoKeyName _cryptoKeyName;
         private readonly CryptoKeyVersionName _cryptoKeyVersionName;
 
         public GoogleCloudKmsRsaKeyService(
             KeyConnectorSettings settings)
         {
             _keyManagementServiceClient = KeyManagementServiceClient.Create();
-            _cryptoKeyName = new CryptoKeyName(settings.RsaKey.GoogleCloudProjectId,
-                settings.RsaKey.GoogleCloudLocationId, settings.RsaKey.GoogleCloudKeyringId,
-                settings.RsaKey.GoogleCloudKeyId);
             _cryptoKeyVersionName = new CryptoKeyVersionName(settings.RsaKey.GoogleCloudProjectId,
                 settings.RsaKey.GoogleCloudLocationId, settings.RsaKey.GoogleCloudKeyringId,
                 settings.RsaKey.GoogleCloudKeyId, settings.RsaKey.GoogleCloudKeyVersionId);
