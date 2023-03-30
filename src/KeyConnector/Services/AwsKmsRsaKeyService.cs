@@ -26,7 +26,8 @@ namespace Bit.KeyConnector.Services
             var request = new EncryptRequest
             {
                 KeyId = _settings.RsaKey.AwsKeyId,
-                Plaintext = dataStream
+                Plaintext = dataStream,
+                EncryptionAlgorithm = EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256
             };
             var response = await _kmsClient.EncryptAsync(request);
             return response.CiphertextBlob.ToArray();
@@ -38,7 +39,8 @@ namespace Bit.KeyConnector.Services
             var request = new DecryptRequest
             {
                 KeyId = _settings.RsaKey.AwsKeyId,
-                CiphertextBlob = dataStream
+                CiphertextBlob = dataStream,
+                EncryptionAlgorithm = EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256
             };
             var response = await _kmsClient.DecryptAsync(request);
             return response.Plaintext.ToArray();
