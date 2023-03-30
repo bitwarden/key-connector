@@ -27,7 +27,9 @@ namespace Bit.KeyConnector.Services
             {
                 KeyId = _settings.RsaKey.AwsKeyId,
                 Plaintext = dataStream,
-                EncryptionAlgorithm = EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256
+                EncryptionAlgorithm = _settings.RsaKey.AwsUseSymmetricEncryption
+                    ? EncryptionAlgorithmSpec.SYMMETRIC_DEFAULT
+                    : EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256
             };
             var response = await _kmsClient.EncryptAsync(request);
             return response.CiphertextBlob.ToArray();
@@ -40,7 +42,9 @@ namespace Bit.KeyConnector.Services
             {
                 KeyId = _settings.RsaKey.AwsKeyId,
                 CiphertextBlob = dataStream,
-                EncryptionAlgorithm = EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256
+                EncryptionAlgorithm = _settings.RsaKey.AwsUseSymmetricEncryption
+                    ? EncryptionAlgorithmSpec.SYMMETRIC_DEFAULT
+                    : EncryptionAlgorithmSpec.RSAES_OAEP_SHA_256
             };
             var response = await _kmsClient.DecryptAsync(request);
             return response.Plaintext.ToArray();
@@ -48,6 +52,10 @@ namespace Bit.KeyConnector.Services
 
         public async Task<byte[]> SignAsync(byte[] data)
         {
+            if (_settings.RsaKey.AwsUseSymmetricEncryption)
+            {
+                throw new System.Exception("Cannot sign using symmetric key");
+            }
             using var dataStream = new MemoryStream(data);
             var request = new SignRequest
             {
@@ -62,6 +70,10 @@ namespace Bit.KeyConnector.Services
 
         public async Task<bool> VerifyAsync(byte[] data, byte[] signature)
         {
+            if (_settings.RsaKey.AwsUseSymmetricEncryption)
+            {
+                throw new System.Exception("Cannot sign using symmetric key");
+            }
             using var dataStream = new MemoryStream(data);
             using var signatureStream = new MemoryStream(data);
             var request = new VerifyRequest
@@ -78,6 +90,10 @@ namespace Bit.KeyConnector.Services
 
         public async Task<byte[]> GetPublicKeyAsync()
         {
+            if (_settings.RsaKey.AwsUseSymmetricEncryption)
+            {
+                throw new System.Exception("Cannot retrieve public key of symmetric key");
+            }
             var request = new GetPublicKeyRequest
             {
                 KeyId = _settings.RsaKey.AwsKeyId

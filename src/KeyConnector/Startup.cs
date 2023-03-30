@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Security.Claims;
 using Bit.KeyConnector.Repositories;
@@ -54,8 +54,11 @@ namespace Bit.KeyConnector
                 services.AddHostedService<HostedServices.DatabaseMigrationHostedService>();
             }
 
-            services.AddHealthChecks()
-                .AddCheck<RsaHealthCheckService>("RsaHealthCheckService");
+            if (!settings.RsaKey.AwsUseSymmetricEncryption)
+            {
+                services.AddHealthChecks()
+                    .AddCheck<RsaHealthCheckService>("RsaHealthCheckService");
+            }
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, KeyConnectorSettings settings)
@@ -73,9 +76,14 @@ namespace Bit.KeyConnector
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints => {
+            app.UseEndpoints(endpoints =>
+            {
                 endpoints.MapDefaultControllerRoute();
-                endpoints.MapHealthChecks("~/health").AllowAnonymous();
+
+                if (!settings.RsaKey.AwsUseSymmetricEncryption)
+                {
+                    endpoints.MapHealthChecks("~/health").AllowAnonymous();
+                }
             });
         }
 
