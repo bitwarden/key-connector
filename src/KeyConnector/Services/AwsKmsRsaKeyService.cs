@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Amazon;
@@ -54,7 +55,7 @@ namespace Bit.KeyConnector.Services
         {
             if (_settings.RsaKey.AwsUseSymmetricEncryption)
             {
-                throw new System.Exception("Cannot sign using symmetric key");
+                throw new Exception("Cannot sign using symmetric key");
             }
             using var dataStream = new MemoryStream(data);
             var request = new SignRequest
@@ -72,7 +73,7 @@ namespace Bit.KeyConnector.Services
         {
             if (_settings.RsaKey.AwsUseSymmetricEncryption)
             {
-                throw new System.Exception("Cannot sign using symmetric key");
+                throw new Exception("Cannot sign using symmetric key");
             }
             using var dataStream = new MemoryStream(data);
             using var signatureStream = new MemoryStream(data);
@@ -92,7 +93,7 @@ namespace Bit.KeyConnector.Services
         {
             if (_settings.RsaKey.AwsUseSymmetricEncryption)
             {
-                throw new System.Exception("Cannot retrieve public key of symmetric key");
+                throw new Exception("Cannot retrieve public key of symmetric key");
             }
             var request = new GetPublicKeyRequest
             {
