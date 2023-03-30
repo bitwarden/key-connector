@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Google.Cloud.Kms.V1;
@@ -9,16 +9,12 @@ namespace Bit.KeyConnector.Services
     public class GoogleCloudKmsRsaKeyService : IRsaKeyService
     {
         private readonly KeyManagementServiceClient _keyManagementServiceClient;
-        private readonly CryptoKeyName _cryptoKeyName;
         private readonly CryptoKeyVersionName _cryptoKeyVersionName;
 
         public GoogleCloudKmsRsaKeyService(
             KeyConnectorSettings settings)
         {
             _keyManagementServiceClient = KeyManagementServiceClient.Create();
-            _cryptoKeyName = new CryptoKeyName(settings.RsaKey.GoogleCloudProjectId,
-                settings.RsaKey.GoogleCloudLocationId, settings.RsaKey.GoogleCloudKeyringId,
-                settings.RsaKey.GoogleCloudKeyId);
             _cryptoKeyVersionName = new CryptoKeyVersionName(settings.RsaKey.GoogleCloudProjectId,
                 settings.RsaKey.GoogleCloudLocationId, settings.RsaKey.GoogleCloudKeyringId,
                 settings.RsaKey.GoogleCloudKeyId, settings.RsaKey.GoogleCloudKeyVersionId);
@@ -26,14 +22,14 @@ namespace Bit.KeyConnector.Services
 
         public async Task<byte[]> EncryptAsync(byte[] data)
         {
-            var result = await _keyManagementServiceClient.EncryptAsync(_cryptoKeyName, ByteString.CopyFrom(data));
-            return result.Ciphertext.ToByteArray();
-
+            var publicKey = await GetRsaPublicKeyAsync();
+            var result = publicKey.Encrypt(data, RSAEncryptionPadding.OaepSHA256);
+            return result;
         }
 
         public async Task<byte[]> DecryptAsync(byte[] data)
         {
-            var result = await _keyManagementServiceClient.DecryptAsync(_cryptoKeyName, ByteString.CopyFrom(data));
+            var result = await _keyManagementServiceClient.AsymmetricDecryptAsync(_cryptoKeyVersionName, ByteString.CopyFrom(data));
             return result.Plaintext.ToByteArray();
         }
 
