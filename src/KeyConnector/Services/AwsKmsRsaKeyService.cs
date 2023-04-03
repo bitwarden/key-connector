@@ -93,7 +93,7 @@ namespace Bit.KeyConnector.Services
         {
             if (_settings.RsaKey.AwsUseSymmetricEncryption)
             {
-                throw new InvalidKeyTypeException("Cannot retrieve public key of symmetric key");
+                throw new InvalidKeyTypeException("Cannot retrieve public key as symmetric keys do not have public keys");
             }
             var request = new GetPublicKeyRequest
             {
