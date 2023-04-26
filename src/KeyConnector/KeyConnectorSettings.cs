@@ -57,6 +57,7 @@
             public string AwsAccessKeySecret { get; set; }
             public string AwsRegion { get; set; }
             public string AwsKeyId { get; set; }
+            public bool AwsUseSymmetricEncryption { get; set; }
             // pkcs11
             //      Providers:
             //      yubihsm
