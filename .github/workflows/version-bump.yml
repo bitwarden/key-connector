@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
+        uses: actions/checkout@96f53100ba2a5449eb71d2e6604bbcd94b9449b5
 
       - name: Login to Azure - Prod Subscription
         uses: Azure/login@1f63701bf3e6892515f1b7ce2d2bf1708b46beaf
@@ -43,7 +43,7 @@ jobs:
           git push -u origin version_bump_${{ github.event.inputs.version_number }}
 
       - name: Checkout Version Branch
-        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
+        uses: actions/checkout@96f53100ba2a5449eb71d2e6604bbcd94b9449b5
         with:
           ref: version_bump_${{ github.event.inputs.version_number }}
 
