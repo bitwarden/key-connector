@@ -30,7 +30,7 @@ jobs:
           secrets: "github-gpg-private-key, github-gpg-private-key-passphrase"
 
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@c8bb57c57e8df1be8c73ff3d59deab1dbc00e0d1
+        uses: crazy-max/ghaction-import-gpg@3f4ec4ad4b01af68e85acbb817352b610d719779
         with:
           gpg_private_key: ${{ steps.retrieve-secrets.outputs.github-gpg-private-key }}
           passphrase: ${{ steps.retrieve-secrets.outputs.github-gpg-private-key-passphrase }}
