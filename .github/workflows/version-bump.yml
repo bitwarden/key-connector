@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579
 
       - name: Login to Azure - Prod Subscription
-        uses: Azure/login@1f63701bf3e6892515f1b7ce2d2bf1708b46beaf
+        uses: Azure/login@d6cc2c8f908f0954146bc22b78ea45200606080d
         with:
          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
 
