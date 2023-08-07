@@ -79,7 +79,7 @@ jobs:
       - name: Setup DCT
         id: setup-dct
         if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix-rc'
-        uses: bitwarden/gh-actions/setup-docker-trust@33f5410f5faac36cd8c32359fff9d2306119979a
+        uses: bitwarden/gh-actions/setup-docker-trust@f096207b7a2f31723165aee6ad03e91716686e78
         with:
           azure-creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
           azure-keyvault-name: "bitwarden-ci"
