@@ -36,7 +36,7 @@ jobs:
 
       - name: Check Release Version
         id: version
-        uses: bitwarden/gh-actions/release-version-check@8fccdaea2810d5dfb13753b6dd93bbd3a63ff82e
+        uses: bitwarden/gh-actions/release-version-check@62d1bf7c3e31c458cc7236b1e69a475d235cd78f
         with:
           release-type: ${{ github.event.inputs.release_type }}
           project-type: dotnet
@@ -68,7 +68,7 @@ jobs:
 
       - name: Setup DCT
         id: setup-dct
-        uses: bitwarden/gh-actions/setup-docker-trust@8fccdaea2810d5dfb13753b6dd93bbd3a63ff82e
+        uses: bitwarden/gh-actions/setup-docker-trust@62d1bf7c3e31c458cc7236b1e69a475d235cd78f
         with:
           azure-creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
           azure-keyvault-name: "bitwarden-ci"
@@ -161,7 +161,7 @@ jobs:
 
       - name: Retrieve secrets
         id: retrieve-secrets
-        uses: bitwarden/gh-actions/get-keyvault-secrets@8fccdaea2810d5dfb13753b6dd93bbd3a63ff82e
+        uses: bitwarden/gh-actions/get-keyvault-secrets@62d1bf7c3e31c458cc7236b1e69a475d235cd78f
         if: failure()
         with:
           keyvault: "bitwarden-ci"
