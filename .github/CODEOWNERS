@@ -8,3 +8,8 @@
 
 # DevOps for Actions and other workflow changes.
 .github/workflows @bitwarden/dept-devops
+
+# DevOps for Docker changes.
+**/Dockerfile @bitwarden/dept-devops
+**/*.Dockerfile @bitwarden/dept-devops
+**/.dockerignore @bitwarden/dept-devops
