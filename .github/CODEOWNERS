@@ -13,3 +13,5 @@
 **/Dockerfile @bitwarden/dept-devops
 **/*.Dockerfile @bitwarden/dept-devops
 **/.dockerignore @bitwarden/dept-devops
+**/entrypoint.sh @bitwarden/dept-devops
+**/prepare-env.sh @bitwarden/dept-devops
