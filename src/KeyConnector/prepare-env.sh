@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Setup
 
 GROUPNAME="bitwarden"
@@ -20,7 +19,6 @@ then
 fi
 
 # Create user and group
-
 groupadd -o -g $LGID $GROUPNAME >/dev/null 2>&1 ||
 groupmod -o -g $LGID $GROUPNAME >/dev/null 2>&1
 useradd -o -u $LUID -g $GROUPNAME -s /bin/false $USERNAME >/dev/null 2>&1 ||
@@ -34,5 +32,5 @@ mkdir -p /etc/bitwarden/logs
 mkdir -p /etc/bitwarden/ca-certificates
 chown -R $USERNAME:$GROUPNAME /etc/bitwarden
 
-cp /etc/bitwarden/ca-certificates/*.crt /usr/local/share/ca-certificates/ 
-update-ca-certificates
+cp /etc/bitwarden/ca-certificates/*.crt /usr/local/share/ca-certificates/ >/dev/null 2>&1 \
+    && update-ca-certificates

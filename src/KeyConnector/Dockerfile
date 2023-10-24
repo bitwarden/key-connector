@@ -4,10 +4,10 @@ LABEL com.bitwarden.product="bitwarden"
 
 RUN apt-get update -y \
     && apt-get install -y --no-install-recommends \
-    gosu \
-    curl \
-    libc-dev \
-    opensc \
+        gosu \
+        curl \
+        libc-dev \
+        opensc \
     && rm -rf /var/lib/apt/lists/*
 
 # Install YubiHSM2 SDK
@@ -23,14 +23,14 @@ ENV ASPNETCORE_URLS http://+:5000
 WORKDIR /app
 EXPOSE 5000
 
-COPY entrypoint.sh /
-RUN chmod +x /entrypoint.sh && \
-    /entrypoint.sh
+COPY prepare-env.sh /
+RUN chmod +x /prepare-env.sh && \
+    /prepare-env.sh
 
 COPY obj/build-output/publish .
 
-USER bitwarden
-
 HEALTHCHECK CMD curl -f http://localhost:5000/health || exit 1
+
+USER bitwarden
 
 ENTRYPOINT ["dotnet", "/app/KeyConnector.dll"]
