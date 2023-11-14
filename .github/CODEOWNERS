@@ -15,3 +15,6 @@
 **/.dockerignore @bitwarden/dept-devops
 **/entrypoint.sh @bitwarden/dept-devops
 **/prepare-env.sh @bitwarden/dept-devops
+
+# Multiple owners
+src/KeyConnector/KeyConnector.csproj
