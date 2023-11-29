@@ -8,8 +8,9 @@
     ":pinAllExceptPeerDependencies",
     ":prConcurrentLimit10",
     ":rebaseStalePrs",
-    "schedule:weekends",
-    ":separateMajorReleases"
+    ":separateMajorReleases",
+    "group:monorepos",
+    "schedule:weekends"
   ],
   "enabledManagers": ["dockerfile", "github-actions", "nuget"],
   "packageRules": [
@@ -28,5 +29,6 @@
       "matchManagers": ["nuget"],
       "matchUpdateTypes": ["minor", "patch"]
     }
-  ]
+  ],
+  "ignoreDeps": ["dotnet-sdk"]
 }
