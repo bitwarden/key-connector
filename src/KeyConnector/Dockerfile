@@ -2,8 +2,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0
 
 LABEL com.bitwarden.product="bitwarden"
 
-RUN apt-get update -y \
+RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        gosu \
         curl \
         libc-dev \
         opensc \
@@ -25,14 +26,8 @@ EXPOSE 5000
 COPY obj/build-output/publish .
 
 COPY entrypoint.sh /
-RUN chmod +x /entrypoint.sh 
-
-COPY prepare-env.sh /
-RUN chmod +x /prepare-env.sh && \
-    /prepare-env.sh
+RUN chmod +x /entrypoint.sh
 
 HEALTHCHECK CMD curl -f http://localhost:5000/health || exit 1
-
-USER bitwarden
 
 ENTRYPOINT ["/entrypoint.sh"]
