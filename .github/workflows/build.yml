@@ -2,10 +2,18 @@
 name: Build
 
 on:
+  pull_request:
+    branches:
+      - master
   push:
-    paths-ignore:
-      - '.github/workflows/**'
+    branches:
+      - master
+      - rc
+      - hotfix-rc
   workflow_dispatch:
+
+env:
+  _AZ_REGISTRY: "bitwardenprod.azurecr.io"
 
 jobs:
   cloc:
@@ -76,13 +84,56 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
-      - name: Setup DCT
-        id: setup-dct
-        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix-rc'
-        uses: bitwarden/gh-actions/setup-docker-trust@main
+      - name: Check Branch to Publish
+        env:
+          PUBLISH_BRANCHES: "master,rc,hotfix-rc"
+        id: publish-branch-check
+        run: |
+          IFS="," read -a publish_branches <<< $PUBLISH_BRANCHES
+
+          if [[ " ${publish_branches[*]} " =~ " ${GITHUB_REF:11} " ]]; then
+            echo "is_publish_branch=true" >> $GITHUB_ENV
+          else
+            echo "is_publish_branch=false" >> $GITHUB_ENV
+          fi
+
+      ########## ACRs ##########
+      - name: Login to Azure - PROD Subscription
+        uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
         with:
-          azure-creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
-          azure-keyvault-name: "bitwarden-ci"
+          creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
+
+      - name: Login to PROD ACR
+        run: az acr login -n bitwardenprod
+
+      - name: Login to Azure - CI Subscription
+        uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
+        with:
+          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+
+      - name: Retrieve github PAT secrets
+        id: retrieve-secret-pat
+        uses: bitwarden/gh-actions/get-keyvault-secrets@main
+        with:
+          keyvault: "bitwarden-ci"
+          secrets: "github-pat-bitwarden-devops-bot-repo-scope"
+
+      ########## Generate image tag and build Docker image ##########
+      - name: Generate Docker image tag
+        id: tag
+        run: |
+          IMAGE_TAG=$(echo "${GITHUB_REF:11}" | sed "s#/#-#g")  # slash safe branch name
+          if [[ "$IMAGE_TAG" == "master" ]]; then
+            IMAGE_TAG=dev
+          fi
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate image full name
+        id: image-name
+        env:
+          IMAGE_TAG: ${{ steps.tag.outputs.image_tag }}
+          PROJECT_NAME: ${{ env._SERVICE_NAME}}
+        run: echo "name=${PROJECT_NAME}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
       - name: Get build artifact
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
@@ -96,42 +147,37 @@ jobs:
             -d ./src/KeyConnector/obj/build-output/publish
 
       - name: Build Docker images
+        env:
+          IMAGE_NAME: ${{ steps.image-name.outputs.name }}
         run: |
-          docker build -t ${{ env._SERVICE_NAME }} \
+          docker build -t ${{ IMAGE_NAME }} \
             ./src/KeyConnector
 
-      - name: Tag and Push RC to Docker Hub
-        if: (github.ref == 'refs/heads/rc')
+      - name: Tag & Push to ACR
+        if: ${{ env.is_publish_branch }}
+        env:
+          IMAGE_NAME: ${{ steps.image-name.outputs.name }}
+        run: |
+          docker tag ${{ IMAGE_NAME }} \
+            ${{ env._AZURE_REGISTRY }}/${{ IMAGE_NAME }}
+          docker push ${{ env._AZURE_REGISTRY }}/${{ IMAGE_NAME }}
+
+      - name: Setup DCT
+        id: setup-dct
+        if: ${{ env.is_publish_branch }}
+        uses: bitwarden/gh-actions/setup-docker-trust@main
+        with:
+          azure-creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+          azure-keyvault-name: "bitwarden-ci"
+
+      - name: Tag & Push to Docker Hub
+        if: ${{ env.is_publish_branch }}
         env:
           DOCKER_CONTENT_TRUST: 1
           DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ steps.setup-dct.outputs.dct-delegate-repo-passphrase }}
+          IMAGE_NAME: ${{ steps.image-name.outputs.name }}
         run: |
-          docker tag ${{ env._SERVICE_NAME }} \
-            bitwarden/${{ env._SERVICE_NAME }}:rc
-          docker push bitwarden/${{ env._SERVICE_NAME }}:rc
+          docker tag ${{ IMAGE_NAME }} \
+            bitwarden/${{ IMAGE_NAME }}
+          docker push bitwarden/${{ IMAGE_NAME }}
 
-      - name: Tag and Push Hotfix to Docker Hub
-        if: (github.ref == 'refs/heads/hotfix-rc')
-        env:
-          DOCKER_CONTENT_TRUST: 1
-          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ steps.setup-dct.outputs.dct-delegate-repo-passphrase }}
-        run: |
-          docker tag ${{ env._SERVICE_NAME }} \
-            bitwarden/${{ env._SERVICE_NAME }}:hotfix
-          docker push bitwarden/${{ env._SERVICE_NAME }}:hotfix
-
-      - name: Tag and Push Dev to Docker Hub
-        if: (github.ref == 'refs/heads/master')
-        env:
-          DOCKER_CONTENT_TRUST: 1
-          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ steps.setup-dct.outputs.dct-delegate-repo-passphrase }}
-        run: |
-          docker tag ${{ env._SERVICE_NAME }} \
-            bitwarden/${{ env._SERVICE_NAME }}:dev
-          docker push bitwarden/${{ env._SERVICE_NAME }}:dev
-
-      - name: Log out of Docker and disable Docker Notary
-        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix-rc'
-        run: |
-          docker logout
-          echo "DOCKER_CONTENT_TRUST=0" >> $GITHUB_ENV
