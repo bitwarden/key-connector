@@ -121,15 +121,18 @@ jobs:
             docker tag $_AZ_REGISTRY/$_PROJECT_NAME:$_BRANCH_NAME bitwarden/$_PROJECT_NAME:latest
           fi
 
-      - name: Push release version and latest image
+      - name: Push release version and latest image to ACR
+        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        run: |
+          docker push $_AZ_REGISTRY/$_PROJECT_NAME:$_RELEASE_VERSION
+          docker push $_AZ_REGISTRY/$_PROJECT_NAME:latest
+
+      - name: Push release version and latest image to Docker Hub
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
         env:
           DOCKER_CONTENT_TRUST: 1
           DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ steps.setup-dct.outputs.dct-delegate-repo-passphrase }}
         run: |
-          docker push $_AZ_REGISTRY/$_PROJECT_NAME:$_RELEASE_VERSION
-          docker push $_AZ_REGISTRY/$_PROJECT_NAME:latest
-
           docker push bitwarden/$_PROJECT_NAME:$_RELEASE_VERSION
           docker push bitwarden/$_PROJECT_NAME:latest
 
