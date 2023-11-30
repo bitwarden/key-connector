@@ -4,7 +4,7 @@ name: Build
 on:
   push:
     paths-ignore:
-      - '.github/workflows/**'
+      - ".github/workflows/**"
   workflow_dispatch:
 
 jobs:
@@ -16,13 +16,10 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Install cloc
-        run: sudo apt update && sudo apt install cloc -y
+        run: sudo apt update && sudo apt install -y cloc
 
       - name: Print lines of code
-        run: |
-          cloc --include-lang \
-          C#,SQL,Razor,"Bourne Shell",PowerShell,HTML,CSS,Sass,JavaScript,TypeScript \
-          --vcs git
+        run: cloc --include-lang C#,SQL,Razor,"Bourne Shell",PowerShell,HTML,CSS,Sass,JavaScript,TypeScript --vcs git
 
 
   build-artifacts:
@@ -40,7 +37,7 @@ jobs:
           echo "GitHub event: $GITHUB_EVENT"
 
       - name: Restore/Clean service
-        working-directory: ./src/KeyConnector
+        working-directory: src/KeyConnector
         run: |
           echo "Restore"
           dotnet restore
@@ -48,7 +45,7 @@ jobs:
           dotnet clean -c "Release" -o obj/build-output/publish
 
       - name: Publish service
-        working-directory: ./src/KeyConnector
+        working-directory: src/KeyConnector
         run: |
           echo "Publish"
           dotnet publish -c "Release" -o obj/build-output/publish
@@ -62,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
         with:
           name: KeyConnector.zip
-          path: ./src/KeyConnector/KeyConnector.zip
+          path: src/KeyConnector/KeyConnector.zip
           if-no-files-found: error
 
 
@@ -71,18 +68,34 @@ jobs:
     runs-on: ubuntu-22.04
     needs: build-artifacts
     env:
-      _SERVICE_NAME: key-connector
+      _AZ_REGISTRY: bitwardenprod.azurecr.io
+      _PROJECT_NAME: key-connector
     steps:
       - name: Checkout repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
-      - name: Setup DCT
-        id: setup-dct
-        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix-rc'
-        uses: bitwarden/gh-actions/setup-docker-trust@main
+      - name: Login to Azure - PROD Subscription
+        uses: Azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2 # v1.4.7
         with:
-          azure-creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
-          azure-keyvault-name: "bitwarden-ci"
+          creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
+
+      - name: Login to PROD ACR
+        run: az acr login -n ${_AZ_REGISTRY%.azurecr.io}
+
+      - name: Generate Docker image tag
+        id: tag
+        run: |
+          IMAGE_TAG=$(echo "${GITHUB_REF:11}" | sed "s#/#-#g")  # slash safe branch name
+          if [[ "$IMAGE_TAG" == "master" ]]; then
+            IMAGE_TAG=dev
+          fi
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate image full name
+        id: image-name
+        env:
+          IMAGE_TAG: ${{ steps.tag.outputs.image_tag }}
+        run: echo "name=${_AZ_REGISTRY}/${_PROJECT_NAME}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
       - name: Get build artifact
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
@@ -91,47 +104,14 @@ jobs:
 
       - name: Setup build artifact
         run: |
-          mkdir -p ./src/KeyConnector/obj/build-output/publish
-          unzip KeyConnector.zip \
-            -d ./src/KeyConnector/obj/build-output/publish
+          mkdir -p src/KeyConnector/obj/build-output/publish
+          unzip KeyConnector.zip -d src/KeyConnector/obj/build-output/publish
 
-      - name: Build Docker images
-        run: |
-          docker build -t ${{ env._SERVICE_NAME }} \
-            ./src/KeyConnector
-
-      - name: Tag and Push RC to Docker Hub
-        if: (github.ref == 'refs/heads/rc')
-        env:
-          DOCKER_CONTENT_TRUST: 1
-          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ steps.setup-dct.outputs.dct-delegate-repo-passphrase }}
-        run: |
-          docker tag ${{ env._SERVICE_NAME }} \
-            bitwarden/${{ env._SERVICE_NAME }}:rc
-          docker push bitwarden/${{ env._SERVICE_NAME }}:rc
-
-      - name: Tag and Push Hotfix to Docker Hub
-        if: (github.ref == 'refs/heads/hotfix-rc')
-        env:
-          DOCKER_CONTENT_TRUST: 1
-          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ steps.setup-dct.outputs.dct-delegate-repo-passphrase }}
-        run: |
-          docker tag ${{ env._SERVICE_NAME }} \
-            bitwarden/${{ env._SERVICE_NAME }}:hotfix
-          docker push bitwarden/${{ env._SERVICE_NAME }}:hotfix
-
-      - name: Tag and Push Dev to Docker Hub
-        if: (github.ref == 'refs/heads/master')
-        env:
-          DOCKER_CONTENT_TRUST: 1
-          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ steps.setup-dct.outputs.dct-delegate-repo-passphrase }}
-        run: |
-          docker tag ${{ env._SERVICE_NAME }} \
-            bitwarden/${{ env._SERVICE_NAME }}:dev
-          docker push bitwarden/${{ env._SERVICE_NAME }}:dev
-
-      - name: Log out of Docker and disable Docker Notary
-        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/rc' || github.ref == 'refs/heads/hotfix-rc'
-        run: |
-          docker logout
-          echo "DOCKER_CONTENT_TRUST=0" >> $GITHUB_ENV
+      - name: Build Docker image
+        uses: docker/build-push-action@1104d471370f9806843c095c1db02b5a90c5f8b6 # v3.3.1
+        with:
+          context: src/KeyConnector
+          file: src/KeyConnector/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.image-name.outputs.name }}
