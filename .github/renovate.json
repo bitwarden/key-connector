@@ -13,6 +13,8 @@
     "schedule:weekends"
   ],
   "enabledManagers": ["dockerfile", "github-actions", "nuget"],
+  "commitMessagePrefix": "[deps]:",
+  "commitMessageTopic": "{{depName}}",
   "packageRules": [
     {
       "groupName": "dockerfile minor",
