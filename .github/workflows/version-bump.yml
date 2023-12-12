@@ -23,6 +23,9 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          repository: bitwarden/key-connector
+          ref: master
 
       - name: Login to Azure - CI Subscription
         uses: Azure/login@de95379fe4dadc2defb305917eaa7e5dde727294 # v1.5.1
@@ -117,7 +120,7 @@ jobs:
           TITLE: "Bump version to ${{ inputs.version_number }}"
         run: |
           PR_URL=$(gh pr create --title "$TITLE" \
-            --base "$GITHUB_REF" \
+            --base "master" \
             --head "$PR_BRANCH" \
             --label "version update" \
             --label "automated pr" \
