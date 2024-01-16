@@ -56,7 +56,7 @@ jobs:
           ls -atlh ../../../
 
       - name: Upload service artifact
-        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
+        uses: actions/upload-artifact@1eb3cb2b3e0f29609092a73eb033bb759a334595 # v4.1.0
         with:
           name: KeyConnector.zip
           path: src/KeyConnector/KeyConnector.zip
@@ -75,7 +75,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
       - name: Login to Azure - PROD Subscription
-        uses: Azure/login@de95379fe4dadc2defb305917eaa7e5dde727294 # v1.5.1
+        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
         with:
           creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
 
@@ -98,7 +98,7 @@ jobs:
         run: echo "name=${_AZ_REGISTRY}/${_PROJECT_NAME}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
 
       - name: Get build artifact
-        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: KeyConnector.zip
 
