@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using VaultSharp;
 using VaultSharp.V1.AuthMethods.Token;
 
@@ -9,10 +10,12 @@ namespace Bit.KeyConnector.Services
     public class HashicorpVaultCertificateProviderService : ICertificateProviderService
     {
         private readonly KeyConnectorSettings _settings;
+        private readonly ILogger<HashicorpVaultCertificateProviderService> _logger;
 
-        public HashicorpVaultCertificateProviderService(KeyConnectorSettings settings)
+        public HashicorpVaultCertificateProviderService(KeyConnectorSettings settings, ILogger<HashicorpVaultCertificateProviderService> logger)
         {
             _settings = settings;
+            _logger = logger;
         }
 
         public async Task<X509Certificate2> GetCertificateAsync()
@@ -32,6 +35,10 @@ namespace Bit.KeyConnector.Services
                 var certData = secret.Data.Data[_settings.Certificate.VaultSecretDataKey] as string;
                 return new X509Certificate2(Convert.FromBase64String(certData),
                     _settings.Certificate.VaultSecretFilePassword);
+            }
+            else
+            {
+                _logger.LogError("No secret found in Hashicorp Vault with key {key}", _settings.Certificate.VaultSecretDataKey);
             }
 
             return null;
