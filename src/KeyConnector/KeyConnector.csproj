@@ -33,7 +33,7 @@
     <PackageReference Include="Serilog.Settings.Configuration" Version="7.0.1"/>
     <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1"/>
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0"/>
-    <PackageReference Include="VaultSharp" Version="1.13.0.1"/>
+    <PackageReference Include="VaultSharp" Version="1.7.0"/>
   </ItemGroup>
 
 </Project>
