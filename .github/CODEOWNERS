@@ -18,3 +18,4 @@
 
 # Multiple owners
 src/KeyConnector/KeyConnector.csproj
+.github/renovate.json
