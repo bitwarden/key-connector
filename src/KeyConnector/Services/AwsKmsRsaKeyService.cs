@@ -17,8 +17,7 @@ namespace Bit.KeyConnector.Services
             KeyConnectorSettings settings)
         {
             _settings = settings;
-            _kmsClient = new AmazonKeyManagementServiceClient(settings.RsaKey.AwsAccessKeyId,
-                settings.RsaKey.AwsAccessKeySecret, RegionEndpoint.GetBySystemName(settings.RsaKey.AwsRegion));
+            _kmsClient = new AmazonKeyManagementServiceClient(RegionEndpoint.GetBySystemName(settings.RsaKey.AwsRegion));
         }
 
         public async Task<byte[]> EncryptAsync(byte[] data)
