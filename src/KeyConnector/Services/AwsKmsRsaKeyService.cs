@@ -17,7 +17,21 @@ namespace Bit.KeyConnector.Services
             KeyConnectorSettings settings)
         {
             _settings = settings;
-            _kmsClient = new AmazonKeyManagementServiceClient(RegionEndpoint.GetBySystemName(settings.RsaKey.AwsRegion));
+            if(UseInstanceMetadataForCredentials())
+            {
+                _kmsClient = new AmazonKeyManagementServiceClient(RegionEndpoint.GetBySystemName(settings.RsaKey.AwsRegion));
+            } else {
+                _kmsClient = new AmazonKeyManagementServiceClient(settings.RsaKey.AwsAccessKeyId, settings.RsaKey.AwsAccessKeySecret, RegionEndpoint.GetBySystemName(settings.RsaKey.AwsRegion));
+            }
+        }
+
+        /// <summary>
+        /// AWS will default to use the instance metadata for credentials if we initialize the client without credentials, per their documentation here: https://docs.aws.amazon.com/sdk-for-net/v3/developer-guide/creds-assign.html.
+        /// We will infer that we should use the instance metadata if the AwsAccessKeyId and AwsAccessKeySecret are not set in the Key Connector configuration.
+        /// </summary>
+        private bool UseInstanceMetadataForCredentials()
+        {
+            return string.IsNullOrWhiteSpace(_settings.RsaKey.AwsAccessKeyId) && string.IsNullOrWhiteSpace(_settings.RsaKey.AwsAccessKeySecret);
         }
 
         public async Task<byte[]> EncryptAsync(byte[] data)
