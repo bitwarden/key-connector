@@ -4,10 +4,10 @@ LABEL com.bitwarden.product="bitwarden"
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-    gosu=1.12* \
-    curl=7.74.0* \
-    libc6-dev=2.31* \
-    opensc=0.21.0* \
+    gosu=1.14* \
+    curl=7.88.1* \
+    libc6-dev=2.36* \
+    opensc=0.23.0* \
     && rm -rf /var/lib/apt/lists/*
 
 # Install YubiHSM2 SDK
