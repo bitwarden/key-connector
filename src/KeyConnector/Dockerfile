@@ -11,7 +11,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install YubiHSM2 SDK
-RUN curl -O https://developers.yubico.com/YubiHSM2/Releases/yubihsm2-sdk-2021-08-debian10-amd64.tar.gz \
+RUN curl -O https://developers.yubico.com/YubiHSM2/Releases/yubihsm2-sdk-2023-11-debian12-amd64.tar.gz \
     && tar -xzf yubihsm2-sdk-*.tar.gz \
     && rm yubihsm2-sdk-*.tar.gz \
     && dpkg -i yubihsm2-sdk/libyubihsm-http1_*_amd64.deb \
