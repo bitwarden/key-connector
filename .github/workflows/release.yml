@@ -151,9 +151,9 @@ jobs:
     steps:
       - name: Check if any job failed
         if: |
-          github.ref == 'refs/heads/main'
+          (github.ref == 'refs/heads/main'
           || github.ref == 'refs/heads/rc'
-          || github.ref == 'refs/heads/hotfix'
+          || github.ref == 'refs/heads/hotfix')
           && contains(needs.*.result, 'failure')
         run: exit 1
 
