@@ -151,21 +151,11 @@ jobs:
     steps:
       - name: Check if any job failed
         if: |
-          github.ref == 'refs/heads/main'
+          (github.ref == 'refs/heads/main'
           || github.ref == 'refs/heads/rc'
-          || github.ref == 'refs/heads/hotfix'
-        env:
-          RELEASE_DOCKER_STATUS: ${{ needs.release-docker.result }}
-          RELEASE_GITHUB_STATUS: ${{ needs.release-github.result }}
-          SETUP_STATUS: ${{ needs.setup.result }}
-        run: |
-          if [ "$RELEASE_DOCKER_STATUS" = "failure" ]; then
-            exit 1
-          elif [ "$RELEASE_GITHUB_STATUS" = "failure" ]; then
-            exit 1
-          elif [ "$SETUP_STATUS" = "failure" ]; then
-            exit 1
-          fi
+          || github.ref == 'refs/heads/hotfix')
+          && contains(needs.*.result, 'failure')
+        run: exit 1
 
       - name: Login to Azure - CI subscription
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
