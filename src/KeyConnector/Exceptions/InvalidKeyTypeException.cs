@@ -13,8 +13,5 @@ namespace Bit.KeyConnector.Exceptions
 
         public InvalidKeyTypeException(string message, Exception innerException)
             : base(message, innerException) { }
-
-        protected InvalidKeyTypeException(SerializationInfo info, StreamingContext context)
-            : base(info, context) { }
     }
 }
