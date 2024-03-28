@@ -1,7 +1,9 @@
 secrets.json
 database.json
+databaseTo.json
 
 # Development keys
 *.key
 *.crt
 *.pfx
+*.lock
