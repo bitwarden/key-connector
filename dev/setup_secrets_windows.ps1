@@ -5,7 +5,7 @@ param (
 )
 
 # Try to Fetch Certificate
-$Certificate = Get-ChildItem -Path cert:\LocalMachine\My | Where-Object { $_.Subject -like "*Bitwarden Key Connector*" } | Select-Object Thumbprint, Subject
+$Certificate = Get-ChildItem -Path cert:\CurrentUser\My | Where-Object { $_.Subject -like "*Bitwarden Key Connector Dev*" } | Select-Object Thumbprint, Subject
 
 if ($($Certificate.Thumbprint)) {
     Write-Host "## INFO --> Found Bitwarden Key Connector certificate : $($Certificate.Thumbprint)"
@@ -14,7 +14,7 @@ else {
     Write-Host "## INFO --> Creating Bitwarden Key Connector certificate..."
     try {
         # Create Key Connector Certificate
-        New-SelfSignedCertificate -DnsName "Bitwarden Key Connector" -CertStoreLocation Cert:\LocalMachine\My -KeySpec Signature -KeyUsage DigitalSignature -KeyExportPolicy Exportable -Subject "CN=Bitwarden Key Connector" -NotBefore (Get-Date) -NotAfter (Get-Date).AddDays(36500)
+        New-SelfSignedCertificate -DnsName "Bitwarden Key Connector Dev" -CertStoreLocation Cert:\CurrentUser\My -KeySpec Signature -KeyUsage DigitalSignature -KeyExportPolicy Exportable -Subject "CN=Bitwarden Key Connector Dev" -NotBefore (Get-Date) -NotAfter (Get-Date).AddDays(36500)
     }
     catch {
         Write-Host "## ERROR --> An exception occurred: $_.Exception.Message"
@@ -23,7 +23,7 @@ else {
     Write-Host "## INFO --> Certificate created successfully"
 
     # Fetch newly created certificate
-    $Certificate = Get-ChildItem -Path cert:\LocalMachine\My | Where-Object { $_.Subject -like "*Bitwarden Key Connector*" } | Select-Object Thumbprint, Subject
+    $Certificate = Get-ChildItem -Path cert:\CurrentUser\My | Where-Object { $_.Subject -like "*Bitwarden Key Connector Dev*" } | Select-Object Thumbprint, Subject
     
     # Adding a check to make sure the certificate exists to ensure no error on creation
     if ($null -eq $($Certificate.Thumbprint) -or "" -eq $($Certificate.Thumbprint)) {
@@ -36,7 +36,7 @@ else {
 $password = Read-Host "## INPUT --> Enter password for private key"
 if ($null -ne $password -and "" -ne $password) {
     $SecureStringPassword = ConvertTo-SecureString -String $password -AsPlainText -Force
-    Export-PfxCertificate -Cert cert:\LocalMachine\My\$($Certificate.Thumbprint) -FilePath .\bwkc.pfx -Password $SecureStringPassword | Out-Null
+    Export-PfxCertificate -Cert cert:\CurrentUser\My\$($Certificate.Thumbprint) -FilePath .\bwkc.pfx -Password $SecureStringPassword | Out-Null
 }
 else {
     Write-Host "## ERROR: Password cannot be null or empty"
