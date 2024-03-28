@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections;
 using System.Threading.Tasks;
 using Bit.KeyConnector.Models;
+using JsonFlatFileDataStore;
 using MongoDB.Driver;
 
 namespace Bit.KeyConnector.Repositories.Mongo
@@ -19,6 +22,11 @@ namespace Bit.KeyConnector.Repositories.Mongo
         public virtual Task<UserKeyModel> ReadAsync(Guid id)
         {
             return Collection.Find(d => d.Id == id).FirstOrDefaultAsync();
+        }
+
+        public virtual Task<List<UserKeyModel>> ReadAllAsync()
+        {
+            return Collection.Find(d => true).ToListAsync();
         }
 
         public virtual async Task UpdateAsync(UserKeyModel item)
