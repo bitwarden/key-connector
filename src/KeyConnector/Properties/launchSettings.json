@@ -15,7 +15,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "SsoAgent": {
+    "KeyConnector": {
       "commandName": "Project",
       "dotnetRunMessages": "true",
       "launchBrowser": false,

@@ -9,6 +9,8 @@
         public CertificateSettings Certificate { get; set; }
         public RsaKeySettings RsaKey { get; set; }
 
+        public TransferToSettings TransferTo { get; set; }
+
         public class CertificateSettings
         {
             public string Provider { get; set; }
@@ -87,6 +89,14 @@
             // mongo
             public string MongoConnectionString { get; set; }
             public string MongoDatabaseName { get; set; }
+        }
+
+        public class TransferToSettings
+        {
+            public string LockfilePath { get; set; }
+            public DatabaseSettings Database { get; set; }
+            public CertificateSettings Certificate { get; set; }
+            public RsaKeySettings RsaKey { get; set; }
         }
     }
 }
