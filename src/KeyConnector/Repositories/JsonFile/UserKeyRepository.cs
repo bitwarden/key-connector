@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Bit.KeyConnector.Models;
 using JsonFlatFileDataStore;
@@ -8,8 +10,15 @@ namespace Bit.KeyConnector.Repositories.JsonFile
     public class UserKeyRepository : Repository<UserKeyModel, Guid>, IUserKeyRepository
     {
         public UserKeyRepository(IDataStore dataStore)
-            : base(dataStore, "userKey")
+        : base(dataStore, "userKey")
         { }
+
+        public virtual Task<List<UserKeyModel>> ReadAllAsync()
+        {
+            var collection = DataStore.GetCollection<UserKeyModel>(CollectionName);
+            var keys = collection.AsQueryable().ToList();
+            return Task.FromResult(keys);
+        }
 
         public override async Task CreateAsync(UserKeyModel item)
         {

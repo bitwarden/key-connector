@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Bit.KeyConnector.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Bit.KeyConnector.Repositories.EntityFramework
@@ -26,6 +29,14 @@ namespace Bit.KeyConnector.Repositories.EntityFramework
             var dbContext = GetDatabaseContext(scope);
             var entity = await dbContext.UserKeys.FindAsync(id);
             return entity?.ToUserKeyModel();
+        }
+
+        public virtual async Task<List<UserKeyModel>> ReadAllAsync()
+        {
+            using var scope = ServiceScopeFactory.CreateScope();
+            var dbContext = GetDatabaseContext(scope);
+            var entities = await dbContext.UserKeys.ToListAsync();
+            return entities.Select(e => e.ToUserKeyModel()).ToList();
         }
 
         public virtual async Task UpdateAsync(UserKeyModel item)

@@ -5,7 +5,8 @@
     <RootNamespace>Bit.KeyConnector</RootNamespace>
     <UserSecretsId>bitwarden-KeyConnector</UserSecretsId>
     <GenerateRuntimeConfigurationFiles>True</GenerateRuntimeConfigurationFiles>   
-    <Version>2024.3.0</Version>
+    
+    <Version>2024.3.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
