@@ -8,7 +8,7 @@ namespace Bit.KeyConnector.Services
     {
         public async Task<byte[]> AesGcmEncryptAsync(byte[] data, byte[] key)
         {
-            using var aes = new AesGcm(key);
+            using var aes = new AesGcm(key, AesGcm.TagByteSizes.MaxSize);
             var iv = await GetRandomBytesAsync(AesGcm.NonceByteSizes.MaxSize);
             var tag = new byte[AesGcm.TagByteSizes.MaxSize];
             var encData = new byte[data.Length];
@@ -25,7 +25,7 @@ namespace Bit.KeyConnector.Services
 
         public Task<byte[]> AesGcmDecryptAsync(byte[] data, byte[] key)
         {
-            using var aes = new AesGcm(key);
+            using var aes = new AesGcm(key, AesGcm.TagByteSizes.MaxSize);
             var endDataLength = data.Length - AesGcm.TagByteSizes.MaxSize - AesGcm.NonceByteSizes.MaxSize;
             var encData = new ArraySegment<byte>(data, 0, endDataLength);
             var tag = new ArraySegment<byte>(data, endDataLength, AesGcm.TagByteSizes.MaxSize);

@@ -1,17 +1,17 @@
-FROM mcr.microsoft.com/dotnet/aspnet:6.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 
 LABEL com.bitwarden.product="bitwarden"
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        gosu=1.12* \
-        curl=7.74.0* \
-        libc6-dev=2.31* \
-        opensc=0.21.0* \
+    gosu=1.14* \
+    curl=7.88.1* \
+    libc6-dev=2.36* \
+    opensc=0.23.0* \
     && rm -rf /var/lib/apt/lists/*
 
 # Install YubiHSM2 SDK
-RUN curl -O https://developers.yubico.com/YubiHSM2/Releases/yubihsm2-sdk-2021-08-debian10-amd64.tar.gz \
+RUN curl -O https://developers.yubico.com/YubiHSM2/Releases/yubihsm2-sdk-2023-11-debian12-amd64.tar.gz \
     && tar -xzf yubihsm2-sdk-*.tar.gz \
     && rm yubihsm2-sdk-*.tar.gz \
     && dpkg -i yubihsm2-sdk/libyubihsm-http1_*_amd64.deb \
