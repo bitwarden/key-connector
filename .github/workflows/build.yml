@@ -1,50 +1,27 @@
----
 name: Build
 
 on:
-  push:
-    paths-ignore:
-      - ".github/workflows/**"
   workflow_dispatch:
+  push:
+    branches:
+      - "main"
+      - "rc"
+      - "hotfix-rc"
+  pull_request:
 
 jobs:
-  cloc:
-    name: CLOC
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-      - name: Install cloc
-        run: sudo apt update && sudo apt install -y cloc
-
-      - name: Print lines of code
-        run: cloc --include-lang C#,SQL,Razor,"Bourne Shell",PowerShell,HTML,CSS,Sass,JavaScript,TypeScript --vcs git
-
-
   build-artifacts:
     name: Build artifacts
     runs-on: ubuntu-22.04
+
     steps:
-      - name: Checkout repo
+      - name: Check out repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-      - name: Print environment
-        run: |
-          whoami
-          dotnet --info
-          echo "GitHub ref: $GITHUB_REF"
-          echo "GitHub event: $GITHUB_EVENT"
+      - name: Set up .NET
+        uses: actions/setup-dotnet@3447fd6a9f9e57506b15f895c5b76d3b197dc7c2 # v3.2.0
 
-      - name: Restore/Clean service
-        working-directory: src/KeyConnector
-        run: |
-          echo "Restore"
-          dotnet restore
-          echo "Clean"
-          dotnet clean -c "Release" -o obj/build-output/publish
-
-      - name: Publish service
+      - name: Publish project
         working-directory: src/KeyConnector
         run: |
           echo "Publish"
@@ -55,13 +32,12 @@ jobs:
           pwd
           ls -atlh ../../../
 
-      - name: Upload service artifact
+      - name: Upload project artifact
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
           name: KeyConnector.zip
           path: src/KeyConnector/KeyConnector.zip
           if-no-files-found: error
-
 
   build-docker:
     name: Build Docker images
@@ -70,16 +46,17 @@ jobs:
     env:
       _AZ_REGISTRY: bitwardenprod.azurecr.io
       _PROJECT_NAME: key-connector
+
     steps:
-      - name: Checkout repo
+      - name: Check out repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-      - name: Login to Azure - PROD Subscription
+      - name: Log in to Azure
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
         with:
           creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
 
-      - name: Login to PROD ACR
+      - name: Log in to ACR
         run: az acr login -n ${_AZ_REGISTRY%.azurecr.io}
 
       - name: Generate Docker image tag
@@ -91,7 +68,7 @@ jobs:
           fi
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Generate image full name
+      - name: Generate full image name
         id: image-name
         env:
           IMAGE_TAG: ${{ steps.tag.outputs.image_tag }}
@@ -102,7 +79,7 @@ jobs:
         with:
           name: KeyConnector.zip
 
-      - name: Setup build artifact
+      - name: Set up build artifact
         run: |
           mkdir -p src/KeyConnector/obj/build-output/publish
           unzip KeyConnector.zip -d src/KeyConnector/obj/build-output/publish
