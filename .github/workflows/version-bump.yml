@@ -1,5 +1,4 @@
----
-name: Version Bump
+name: Bump version
 
 on:
   workflow_dispatch:
@@ -19,10 +18,11 @@ on:
 
 jobs:
   bump_version:
-    name: Bump Version
+    name: Bump version
     runs-on: ubuntu-22.04
     outputs:
       version: ${{ steps.set-final-version-output.outputs.version }}
+
     steps:
       - name: Validate version input
         if: ${{ inputs.version_number_override != '' }}
@@ -30,7 +30,7 @@ jobs:
         with:
           version: ${{ inputs.version_number_override }}
 
-      - name: Slack Notification Check
+      - name: Check for Slack notifications
         run: |
           if [[ "${{ inputs.enable_slack_notification }}" == true ]]; then
             echo "Slack notifications enabled."
@@ -38,7 +38,7 @@ jobs:
             echo "Slack notifications disabled."
           fi
 
-      - name: Checkout Branch
+      - name: Check out repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           ref: main
@@ -53,7 +53,7 @@ jobs:
             exit 1
           fi
 
-      - name: Login to Azure - CI Subscription
+      - name: Log in to Azure
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
         with:
           creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
@@ -75,12 +75,12 @@ jobs:
           git_user_signingkey: true
           git_commit_gpgsign: true
 
-      - name: Setup git
+      - name: Set up Git
         run: |
           git config --local user.email "106330231+bitwarden-devops-bot@users.noreply.github.com"
           git config --local user.name "bitwarden-devops-bot"
 
-      - name: Create Version Branch
+      - name: Create version branch
         id: create-branch
         run: |
           NAME=version_bump_${{ github.ref_name }}_$(date +"%Y-%m-%d")
@@ -95,7 +95,7 @@ jobs:
       - name: Get current version
         id: current-version
         run: |
-          CURRENT_VERSION=$(xmllint -xpath "/Project/PropertyGroup/Version/text()" src/KeyConnector/KeyConnector.csproj)
+          CURRENT_VERSION=$(xmllint -xpath "/Project/PropertyGroup/Version/text()" Directory.Build.props)
           echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
 
       - name: Verify input version
@@ -126,20 +126,20 @@ jobs:
         with:
           version: ${{ steps.current-version.outputs.version }}
 
-      - name: Bump Version - csproj - Version Override
+      - name: Bump version props for version override
         if: ${{ inputs.version_number_override != '' }}
         id: bump-version-override
         uses: bitwarden/gh-actions/version-bump@main
         with:
-          file_path: "src/KeyConnector/KeyConnector.csproj"
+          file_path: "Directory.Build.props"
           version: ${{ inputs.version_number_override }}
 
-      - name: Bump Version - csproj - Automatic Calculation
+      - name: Bump version props with automatic calculation
         if: ${{ inputs.version_number_override == '' }}
         id: bump-version-automatic
         uses: bitwarden/gh-actions/version-bump@main
         with:
-          file_path: "src/KeyConnector/KeyConnector.csproj"
+          file_path: "Directory.Build.props"
           version: ${{ steps.calculate-next-version.outputs.version }}
 
       - name: Set final version output
@@ -171,7 +171,7 @@ jobs:
           PR_BRANCH: ${{ steps.create-branch.outputs.name }}
         run: git push -u origin $PR_BRANCH
 
-      - name: Create Version PR
+      - name: Create version PR
         if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
         id: create-pr
         env:
@@ -223,8 +223,9 @@ jobs:
     if: ${{ inputs.cut_rc_branch == true }}
     needs: bump_version
     runs-on: ubuntu-22.04
+
     steps:
-      - name: Checkout Branch
+      - name: Check out repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           ref: main
@@ -242,7 +243,7 @@ jobs:
           while : ; do
             echo "Waiting for version to be updated..."
             git pull --force
-            CURRENT_VERSION=$(xmllint -xpath "/Project/PropertyGroup/Version/text()" src/KeyConnector/KeyConnector.csproj)
+            CURRENT_VERSION=$(xmllint -xpath "/Project/PropertyGroup/Version/text()" Directory.Build.props)
 
             # If the versions don't match we continue the loop, otherwise we break out of the loop.
             [[ "$NEW_VERSION" != "$CURRENT_VERSION" ]] || break

@@ -1,13 +1,12 @@
----
 name: Release
-run-name: Release - ${{ github.event.inputs.release_type }}
+run-name: Release ${{ github.event.inputs.release_type }}
 
 on:
   workflow_dispatch:
     inputs:
       release_type:
-        description: 'Release Options'
-        default: 'Initial Release'
+        description: "Release Options"
+        default: "Initial Release"
         type: choice
         options:
           - Initial Release
@@ -21,8 +20,9 @@ jobs:
     outputs:
       release_version: ${{ steps.version.outputs.version }}
       branch-name: ${{ steps.branch.outputs.branch-name }}
+
     steps:
-      - name: Branch check
+      - name: Check branch
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
         run: |
           if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc" ]]; then
@@ -32,16 +32,16 @@ jobs:
             exit 1
           fi
 
-      - name: Checkout repo
+      - name: Check out repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-      - name: Check Release Version
+      - name: Check release version
         id: version
         uses: bitwarden/gh-actions/release-version-check@main
         with:
           release-type: ${{ github.event.inputs.release_type }}
           project-type: dotnet
-          file: src/KeyConnector/KeyConnector.csproj
+          file: Directory.Build.props
 
       - name: Get branch name
         id: branch
@@ -77,24 +77,17 @@ jobs:
       _RELEASE_VERSION: ${{ needs.setup.outputs.release_version }}
       _BRANCH_NAME: ${{ needs.setup.outputs.branch-name }}
       _RELEASE_OPTION: ${{ github.event.inputs.release_type }}
-    steps:
-      - name: Print environment
-        run: |
-          whoami
-          docker --version
-          echo "GitHub ref: $GITHUB_REF"
-          echo "GitHub event: $GITHUB_EVENT"
-          echo "Github Release Option: $_RELEASE_OPTION"
 
-      - name: Login to Azure - Prod Subscription
+    steps:
+      - name: Log in to Azure
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
         with:
           creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
 
-      - name: Login to Azure ACR
+      - name: Log in to ACR
         run: az acr login -n ${_AZ_REGISTRY%.azurecr.io}
 
-      - name: Setup DCT
+      - name: Set up DCT
         id: setup-dct
         uses: bitwarden/gh-actions/setup-docker-trust@main
         with:
@@ -139,7 +132,6 @@ jobs:
       - name: Log out of Docker
         run: docker logout
 
-
   check-failures:
     name: Check for failures
     if: always()
@@ -148,16 +140,17 @@ jobs:
       - release-docker
       - release-github
       - setup
+
     steps:
       - name: Check if any job failed
         if: |
           (github.ref == 'refs/heads/main'
           || github.ref == 'refs/heads/rc'
-          || github.ref == 'refs/heads/hotfix')
+          || github.ref == 'refs/heads/hotfix-rc')
           && contains(needs.*.result, 'failure')
         run: exit 1
 
-      - name: Login to Azure - CI subscription
+      - name: Log in to Azure
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
         if: failure()
         with:
