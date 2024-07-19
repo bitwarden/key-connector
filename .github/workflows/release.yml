@@ -25,9 +25,9 @@ jobs:
       - name: Check branch
         if: ${{ github.event.inputs.release_type != 'Dry Run' }}
         run: |
-          if [[ "$GITHUB_REF" != "refs/heads/rc" ]] && [[ "$GITHUB_REF" != "refs/heads/hotfix-rc" ]]; then
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
             echo "==================================="
-            echo "[!] Can only release from the 'rc' or 'hotfix-rc' branches"
+            echo "[!] Can only release from the 'main' branch"
             echo "==================================="
             exit 1
           fi
@@ -143,11 +143,7 @@ jobs:
 
     steps:
       - name: Check if any job failed
-        if: |
-          (github.ref == 'refs/heads/main'
-          || github.ref == 'refs/heads/rc'
-          || github.ref == 'refs/heads/hotfix-rc')
-          && contains(needs.*.result, 'failure')
+        if: github.ref == 'refs/heads/main' && contains(needs.*.result, 'failure')
         run: exit 1
 
       - name: Log in to Azure
