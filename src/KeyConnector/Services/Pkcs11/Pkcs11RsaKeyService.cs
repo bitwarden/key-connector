@@ -1,16 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Net.Pkcs11Interop.Common;
 using Net.Pkcs11Interop.HighLevelAPI;
 
-namespace Bit.KeyConnector.Services
+namespace Bit.KeyConnector.Services.Pkcs11
 {
     public class Pkcs11RsaKeyService : IRsaKeyService
     {
         private readonly ICertificateProviderService _certificateProviderService;
         private readonly ICryptoFunctionService _cryptoFunctionService;
+        private readonly IPkcs11InteropFactory _pkcs11InteropFactory;
         private readonly KeyConnectorSettings _settings;
 
         private X509Certificate2 _certificate;
@@ -18,10 +20,12 @@ namespace Bit.KeyConnector.Services
         public Pkcs11RsaKeyService(
             ICertificateProviderService certificateProviderService,
             ICryptoFunctionService cryptoFunctionService,
+            IPkcs11InteropFactory pkcs11LibraryFactory,
             KeyConnectorSettings settings)
         {
             _certificateProviderService = certificateProviderService;
             _cryptoFunctionService = cryptoFunctionService;
+            _pkcs11InteropFactory = pkcs11LibraryFactory;
             _settings = settings;
         }
 
@@ -39,19 +43,19 @@ namespace Bit.KeyConnector.Services
         {
             if (data == null)
             {
-                return null;
+                return Task.FromResult<byte[]>(null);
             }
 
             using var library = LoadLibrary();
             using var session = CreateNewSession(library);
             var privateKey = GetPrivateKey(session);
 
-            var mechanismParams = session.Factories.MechanismParamsFactory.CreateCkRsaPkcsOaepParams(
+            var mechanismParams = _pkcs11InteropFactory.CreateCkRsaPkcsOaepParams(
                 ConvertUtils.UInt64FromCKM(CKM.CKM_SHA_1),
                 ConvertUtils.UInt64FromCKG(CKG.CKG_MGF1_SHA1),
                 ConvertUtils.UInt64FromUInt32(CKZ.CKZ_DATA_SPECIFIED),
                 null);
-            var mechanism = session.Factories.MechanismFactory.Create(CKM.CKM_RSA_PKCS_OAEP, mechanismParams);
+            var mechanism = _pkcs11InteropFactory.CreateMechanism(CKM.CKM_RSA_PKCS_OAEP, mechanismParams);
             var plainData = session.Decrypt(mechanism, privateKey, data);
 
             session.Logout();
@@ -62,14 +66,14 @@ namespace Bit.KeyConnector.Services
         {
             if (data == null)
             {
-                return null;
+                return Task.FromResult<byte[]>(null);
             }
 
             using var library = LoadLibrary();
             using var session = CreateNewSession(library);
             var privateKey = GetPrivateKey(session);
 
-            var mechanism = session.Factories.MechanismFactory.Create(CKM.CKM_SHA256_RSA_PKCS);
+            var mechanism = _pkcs11InteropFactory.CreateMechanism(CKM.CKM_SHA256_RSA_PKCS);
             var signature = session.Sign(mechanism, privateKey, data);
 
             session.Logout();
@@ -105,104 +109,97 @@ namespace Bit.KeyConnector.Services
         {
             var attributes = new List<IObjectAttribute>
             {
-                session.Factories.ObjectAttributeFactory.Create(CKA.CKA_CLASS, CKO.CKO_PRIVATE_KEY),
-                session.Factories.ObjectAttributeFactory.Create(CKA.CKA_TOKEN, true)
+                _pkcs11InteropFactory.CreateObjectAttribute(CKA.CKA_CLASS, CKO.CKO_PRIVATE_KEY),
+                _pkcs11InteropFactory.CreateObjectAttribute(CKA.CKA_TOKEN, true)
             };
             if (_settings.RsaKey.Pkcs11PrivateKeyId.HasValue)
             {
-                attributes.Add(session.Factories.ObjectAttributeFactory.Create(CKA.CKA_ID,
+                attributes.Add(_pkcs11InteropFactory.CreateObjectAttribute(CKA.CKA_ID,
                     _settings.RsaKey.Pkcs11PrivateKeyId.Value));
             }
             else
             {
-                attributes.Add(session.Factories.ObjectAttributeFactory.Create(CKA.CKA_LABEL,
+                attributes.Add(_pkcs11InteropFactory.CreateObjectAttribute(CKA.CKA_LABEL,
                     _settings.RsaKey.Pkcs11PrivateKeyLabel));
             }
 
             var objects = session.FindAllObjects(attributes);
-            if (objects.Count == 0)
+            return objects.Count switch
             {
-                throw new System.Exception("Private key not found.");
-            }
-            else if (objects.Count > 1)
-            {
-                throw new System.Exception("More than one private key was found. Use a more specific identifier.");
-            }
-
-            return objects.Single();
+                0 => throw new System.Exception("Private key not found."),
+                > 1 => throw new System.Exception(
+                    "More than one private key was found. Use a more specific identifier."),
+                _ => objects.Single()
+            };
         }
+
         private IPkcs11Library LoadLibrary()
         {
             var libPath = _settings.RsaKey.Pkcs11LibraryPath;
             if (string.IsNullOrWhiteSpace(libPath))
             {
                 var provider = _settings.RsaKey.Pkcs11Provider?.ToLowerInvariant();
-                if (provider == "yubihsm")
+                libPath = provider switch
                 {
-                    libPath = "/usr/lib/x86_64-linux-gnu/pkcs11/yubihsm_pkcs11.so";
-                }
-                else if (provider == "opensc")
-                {
-                    libPath = "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so";
-                }
-                else
-                {
-                    throw new System.Exception("Please provide a library path or known provider.");
-                }
+                    "yubihsm" => "/usr/lib/x86_64-linux-gnu/pkcs11/yubihsm_pkcs11.so",
+                    "opensc" => "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so",
+                    _ => throw new Exception("Please provide a library path or known provider.")
+                };
             }
 
-            var factories = new Pkcs11InteropFactories();
-            var library = factories.Pkcs11LibraryFactory.LoadPkcs11Library(factories, libPath, AppType.MultiThreaded);
+            var library = _pkcs11InteropFactory.LoadPkcs11Library(libPath, AppType.MultiThreaded);
             if (library == null)
             {
-                throw new System.Exception("Cannot load library.");
+                throw new Exception("Cannot load library.");
             }
+
             return library;
         }
 
         private ISession CreateNewSession(IPkcs11Library library)
         {
+            var slotTokenSerialNumber = _settings.RsaKey.Pkcs11SlotTokenSerialNumber?.ToLowerInvariant();
+            var userTypeSetting = _settings.RsaKey.Pkcs11LoginUserType?.ToLowerInvariant();
+            var loginPin = _settings.RsaKey.Pkcs11LoginPin;
+
             ISlot chosenSlot = null;
             var slots = library.GetSlotList(SlotsType.WithOrWithoutTokenPresent);
-            var serialNumber = _settings.RsaKey.Pkcs11SlotTokenSerialNumber?.ToLowerInvariant();
             foreach (var slot in slots)
             {
                 var slotInfo = slot.GetSlotInfo();
-                if (slotInfo.SlotFlags.TokenPresent)
+                if (!slotInfo.SlotFlags.TokenPresent)
                 {
-                    try
-                    {
-                        var tokenInfo = slot.GetTokenInfo();
-                        if (tokenInfo?.SerialNumber?.ToLowerInvariant() == serialNumber)
-                        {
-                            chosenSlot = slot;
-                            break;
-                        }
-                    }
-                    catch (Pkcs11Exception) { }
+                    continue;
                 }
+
+                try
+                {
+                    var tokenInfo = slot.GetTokenInfo();
+                    if (tokenInfo?.SerialNumber?.ToLowerInvariant() == slotTokenSerialNumber)
+                    {
+                        chosenSlot = slot;
+                        break;
+                    }
+                }
+                catch (Pkcs11Exception) {}
             }
 
             if (chosenSlot == null)
             {
-                throw new System.Exception("Cannot locate token slot.");
+                throw new Exception("Cannot locate token slot.");
             }
 
             // TODO: read only?
             var session = chosenSlot.OpenSession(SessionType.ReadWrite);
 
-            var userType = CKU.CKU_USER;
-            var userTypeSetting = _settings.RsaKey.Pkcs11LoginUserType?.ToLowerInvariant();
-            if (userTypeSetting == "so")
+            var userType = userTypeSetting switch
             {
-                userType = CKU.CKU_SO;
-            }
-            else if (userTypeSetting == "context_specific")
-            {
-                userType = CKU.CKU_CONTEXT_SPECIFIC;
-            }
-            session.Login(userType, _settings.RsaKey.Pkcs11LoginPin);
+                "so" => CKU.CKU_SO,
+                "context_specific" => CKU.CKU_CONTEXT_SPECIFIC,
+                _ => CKU.CKU_USER
+            };
 
+            session.Login(userType, loginPin);
             return session;
         }
     }
