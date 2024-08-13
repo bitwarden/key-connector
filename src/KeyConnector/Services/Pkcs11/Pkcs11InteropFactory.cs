@@ -11,7 +11,7 @@ public class Pkcs11InteropFactory : IPkcs11InteropFactory
 {
    private readonly Pkcs11InteropFactories _factories;
 
-   private Pkcs11InteropFactory()
+   public Pkcs11InteropFactory()
     {
         if (Platform.IsLinux)
         {
