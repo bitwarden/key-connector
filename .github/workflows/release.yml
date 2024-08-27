@@ -1,5 +1,6 @@
+---
 name: Release
-run-name: Release ${{ github.event.inputs.release_type }}
+run-name: Release ${{ inputs.release_type }}
 
 on:
   workflow_dispatch:
@@ -23,7 +24,7 @@ jobs:
 
     steps:
       - name: Check branch
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         run: |
           if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
             echo "==================================="
@@ -39,7 +40,7 @@ jobs:
         id: version
         uses: bitwarden/gh-actions/release-version-check@main
         with:
-          release-type: ${{ github.event.inputs.release_type }}
+          release-type: ${{ inputs.release_type }}
           project-type: dotnet
           file: Directory.Build.props
 
@@ -51,7 +52,7 @@ jobs:
 
   release-github:
     name: Create GitHub Release
-    if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+    if: ${{ inputs.release_type != 'Dry Run' }}
     runs-on: ubuntu-22.04
     needs: setup
     steps:
@@ -76,7 +77,7 @@ jobs:
       _PROJECT_NAME: key-connector
       _RELEASE_VERSION: ${{ needs.setup.outputs.release_version }}
       _BRANCH_NAME: ${{ needs.setup.outputs.branch-name }}
-      _RELEASE_OPTION: ${{ github.event.inputs.release_type }}
+      _RELEASE_OPTION: ${{ inputs.release_type }}
 
     steps:
       - name: Log in to Azure
@@ -95,33 +96,28 @@ jobs:
           azure-keyvault-name: "bitwarden-ci"
 
       - name: Pull image
-        run: |
-          if [[ "${{ github.event.inputs.release_type }}" == "Dry Run" ]]; then
-            docker pull $_AZ_REGISTRY/$_PROJECT_NAME:dev
-          else
-            docker pull $_AZ_REGISTRY/$_PROJECT_NAME:$_BRANCH_NAME
-          fi
+        run: docker pull $_AZ_REGISTRY/$_PROJECT_NAME:dev
 
       - name: Tag version and latest
         run: |
-          if [[ "${{ github.event.inputs.release_type }}" == "Dry Run" ]]; then
+          if [[ "${{ inputs.release_type }}" == "Dry Run" ]]; then
             docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev bitwarden/$_PROJECT_NAME:dryrun
           else
-            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:$_BRANCH_NAME $_AZ_REGISTRY/$_PROJECT_NAME:$_RELEASE_VERSION
-            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:$_BRANCH_NAME $_AZ_REGISTRY/$_PROJECT_NAME:latest
+            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev $_AZ_REGISTRY/$_PROJECT_NAME:$_RELEASE_VERSION
+            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev $_AZ_REGISTRY/$_PROJECT_NAME:latest
 
-            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:$_BRANCH_NAME bitwarden/$_PROJECT_NAME:$_RELEASE_VERSION
-            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:$_BRANCH_NAME bitwarden/$_PROJECT_NAME:latest
+            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev bitwarden/$_PROJECT_NAME:$_RELEASE_VERSION
+            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev bitwarden/$_PROJECT_NAME:latest
           fi
 
       - name: Push release version and latest image to ACR
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         run: |
           docker push $_AZ_REGISTRY/$_PROJECT_NAME:$_RELEASE_VERSION
           docker push $_AZ_REGISTRY/$_PROJECT_NAME:latest
 
       - name: Push release version and latest image to Docker Hub
-        if: ${{ github.event.inputs.release_type != 'Dry Run' }}
+        if: ${{ inputs.release_type != 'Dry Run' }}
         env:
           DOCKER_CONTENT_TRUST: 1
           DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ steps.setup-dct.outputs.dct-delegate-repo-passphrase }}
@@ -140,7 +136,6 @@ jobs:
       - release-docker
       - release-github
       - setup
-
     steps:
       - name: Check if any job failed
         if: github.ref == 'refs/heads/main' && contains(needs.*.result, 'failure')
