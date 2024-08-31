@@ -66,74 +66,11 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           draft: true
 
-  release-docker:
-    name: Build Docker images
-    runs-on: ubuntu-22.04
-    needs:
-      - setup
-      - release-github
-    env:
-      _AZ_REGISTRY: bitwardenprod.azurecr.io
-      _PROJECT_NAME: key-connector
-      _RELEASE_VERSION: ${{ needs.setup.outputs.release_version }}
-      _BRANCH_NAME: ${{ needs.setup.outputs.branch-name }}
-      _RELEASE_OPTION: ${{ inputs.release_type }}
-
-    steps:
-      - name: Log in to Azure
-        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
-        with:
-          creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
-
-      - name: Log in to ACR
-        run: az acr login -n ${_AZ_REGISTRY%.azurecr.io}
-
-      - name: Set up DCT
-        id: setup-dct
-        uses: bitwarden/gh-actions/setup-docker-trust@main
-        with:
-          azure-creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
-          azure-keyvault-name: "bitwarden-ci"
-
-      - name: Pull image
-        run: docker pull $_AZ_REGISTRY/$_PROJECT_NAME:dev
-
-      - name: Tag version and latest
-        run: |
-          if [[ "${{ inputs.release_type }}" == "Dry Run" ]]; then
-            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev bitwarden/$_PROJECT_NAME:dryrun
-          else
-            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev $_AZ_REGISTRY/$_PROJECT_NAME:$_RELEASE_VERSION
-            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev $_AZ_REGISTRY/$_PROJECT_NAME:latest
-
-            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev bitwarden/$_PROJECT_NAME:$_RELEASE_VERSION
-            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev bitwarden/$_PROJECT_NAME:latest
-          fi
-
-      - name: Push release version and latest image to ACR
-        if: ${{ inputs.release_type != 'Dry Run' }}
-        run: |
-          docker push $_AZ_REGISTRY/$_PROJECT_NAME:$_RELEASE_VERSION
-          docker push $_AZ_REGISTRY/$_PROJECT_NAME:latest
-
-      - name: Push release version and latest image to Docker Hub
-        if: ${{ inputs.release_type != 'Dry Run' }}
-        env:
-          DOCKER_CONTENT_TRUST: 1
-          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ steps.setup-dct.outputs.dct-delegate-repo-passphrase }}
-        run: |
-          docker push bitwarden/$_PROJECT_NAME:$_RELEASE_VERSION
-          docker push bitwarden/$_PROJECT_NAME:latest
-
-      - name: Log out of Docker
-        run: docker logout
-
   check-failures:
     name: Check for failures
     if: always()
     runs-on: ubuntu-22.04
     needs:
-      - release-docker
       - release-github
       - setup
     steps:
