@@ -46,7 +46,7 @@ jobs:
           token: '${{ secrets.GITHUB_TOKEN }}'
           initial-status: 'in_progress'
           environment: 'production'
-          description: 'Deployment ${{ needs.setup.outputs.release-version }} from branch ${{ github.ref_name }}'
+          description: 'Deployment ${{ steps.version-output.outputs.version }} from branch ${{ github.ref_name }}'
           task: release
 
   publish-docker:
