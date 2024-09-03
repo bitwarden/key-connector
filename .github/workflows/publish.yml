@@ -57,7 +57,6 @@ jobs:
       _AZ_REGISTRY: bitwardenprod.azurecr.io
       _PROJECT_NAME: key-connector
       _RELEASE_VERSION: ${{ needs.setup.outputs.release-version }}
-      _PUBLISH_OPTION: ${{ inputs.publish_option }}
 
     steps:
       - name: Log in to Azure
