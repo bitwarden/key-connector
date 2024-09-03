@@ -50,7 +50,7 @@ jobs:
           task: release
 
   publish-docker:
-    name: Build Docker images
+    name: Publish Docker images
     runs-on: ubuntu-22.04
     needs:
       - setup
