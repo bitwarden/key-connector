@@ -39,16 +39,6 @@ jobs:
             echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Create GitHub deployment
-        uses: chrnorm/deployment-action@55729fcebec3d284f60f5bcabbd8376437d696b1 # v2.0.7
-        id: deployment
-        with:
-          token: '${{ secrets.GITHUB_TOKEN }}'
-          initial-status: 'in_progress'
-          environment: 'production'
-          description: 'Deployment ${{ steps.version-output.outputs.version }} from branch ${{ github.ref_name }}'
-          task: release
-
   publish-docker:
     name: Publish Docker images
     runs-on: ubuntu-22.04
