@@ -25,7 +25,6 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       release-version: ${{ steps.version-output.outputs.version }}
-      deployment-id: ${{ steps.deployment.outputs.deployment-id }}
     steps:
       - name: Version output
         id: version-output
