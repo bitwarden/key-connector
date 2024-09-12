@@ -154,7 +154,6 @@ jobs:
         env:
           PR_BRANCH: ${{ steps.create-branch.outputs.name }}
         run: |
-          git pull origin $PR_BRANCH
           git push -u origin $PR_BRANCH
 
       - name: Generate GH App token
