@@ -22,7 +22,7 @@ on:
 jobs:
   setup:
     name: Setup
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       release-version: ${{ steps.version-output.outputs.version }}
     steps:
@@ -40,7 +40,7 @@ jobs:
 
   publish-docker:
     name: Publish Docker images
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: setup
     env:
       _AZ_REGISTRY: bitwardenprod.azurecr.io

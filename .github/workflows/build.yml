@@ -11,7 +11,7 @@ on:
 jobs:
   build-artifacts:
     name: Build artifacts
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Check out repo
@@ -40,7 +40,7 @@ jobs:
 
   build-docker:
     name: Build Docker images
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: build-artifacts
     env:
       _AZ_REGISTRY: bitwardenprod.azurecr.io
