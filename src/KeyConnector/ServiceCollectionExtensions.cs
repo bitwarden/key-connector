@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using Bit.KeyConnector.Repositories;
 using Bit.KeyConnector.Services;
+using Bit.KeyConnector.Services.Pkcs11;
 using IdentityModel;
 using IdentityServer4.AccessTokenValidation;
 using JsonFlatFileDataStore;
@@ -29,6 +30,7 @@ namespace Bit.KeyConnector
                 else if (rsaKeyProvider == "pkcs11")
                 {
                     services.AddSingleton<IRsaKeyService, Pkcs11RsaKeyService>();
+                    services.AddSingleton<IPkcs11InteropFactory, Pkcs11InteropFactory>();
                 }
 
                 var certificateProvider = settings.Certificate.Provider?.ToLowerInvariant();
