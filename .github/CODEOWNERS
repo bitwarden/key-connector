@@ -10,5 +10,13 @@
 src/KeyConnector/KeyConnector.csproj
 .github/renovate.json
 
-# BRE for release workflow changes
-.github/workflows/release.yml @bitwarden/dept-bre
+## These are shared workflows ##
+.github/workflows/version-bump.yml
+.github/workflows/cleanup-rc-branch.yml
+.github/workflows/release.yml
+
+## Docker files have shared ownership ##
+**/Dockerfile
+**/*.Dockerfile
+**/.dockerignore
+**/entrypoint.sh
