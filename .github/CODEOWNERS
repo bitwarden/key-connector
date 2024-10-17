@@ -11,11 +11,11 @@ src/KeyConnector/KeyConnector.csproj
 .github/renovate.json
 Directory.Build.props
 
-## Docker files have shared ownership ##
-**/Dockerfile
-**/*.Dockerfile
-**/.dockerignore
-**/entrypoint.sh
+## Docker files have joint ownership ##
+**/Dockerfile @bitwarden/dept-bre @bitwarden/team-auth-dev
+**/*.Dockerfile @bitwarden/dept-bre @bitwarden/team-auth-dev
+**/.dockerignore @bitwarden/dept-bre @bitwarden/team-auth-dev
+**/entrypoint.sh @bitwarden/dept-bre @bitwarden/team-auth-dev
 
 ## These are shared workflows ##
 .github/workflows/version-bump.yml
