@@ -4,7 +4,7 @@
 
 # The following owners will be the default owners for everything in the repo.
 # Unless a later match takes precedence
-* @bitwarden/team-km-dev
+* @bitwarden/team-key-management-dev
 
 # Multiple owners
 src/KeyConnector/KeyConnector.csproj
@@ -12,15 +12,15 @@ src/KeyConnector/KeyConnector.csproj
 Directory.Build.props
 
 ## Docker files have joint ownership ##
-**/Dockerfile @bitwarden/dept-bre @bitwarden/team-km-dev
-**/*.Dockerfile @bitwarden/dept-bre @bitwarden/team-km-dev
-**/.dockerignore @bitwarden/dept-bre @bitwarden/team-km-dev
-**/entrypoint.sh @bitwarden/dept-bre @bitwarden/team-km-dev
+**/Dockerfile @bitwarden/dept-bre @bitwarden/team-key-management-dev
+**/*.Dockerfile @bitwarden/dept-bre @bitwarden/team-key-management-dev
+**/.dockerignore @bitwarden/dept-bre @bitwarden/team-key-management-dev
+**/entrypoint.sh @bitwarden/dept-bre @bitwarden/team-key-management-dev
 
 ## BRE team owns these workflows ##
 .github/workflows/publish.yml @bitwarden/dept-bre
 
 ## These workflows have joint ownership ##
-.github/workflows/build.yml @bitwarden/dept-bre @bitwarden/team-km-dev
-.github/workflows/release.yml @bitwarden/dept-bre @bitwarden/team-km-dev
-.github/workflows/version-bump.yml @bitwarden/dept-bre @bitwarden/team-km-dev
+.github/workflows/build.yml @bitwarden/dept-bre @bitwarden/team-key-management-dev
+.github/workflows/release.yml @bitwarden/dept-bre @bitwarden/team-key-management-dev
+.github/workflows/version-bump.yml @bitwarden/dept-bre @bitwarden/team-key-management-dev
