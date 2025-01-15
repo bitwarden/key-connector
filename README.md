@@ -136,7 +136,7 @@ Use a physical HSM device with the PKCS11 provider.
 
 ```
 keyConnectorSettings__rsaKey__provider=pkcs11
-# Available providers: yubihsm, opensc
+# Available providers: yubihsm, opensc, futurex
 keyConnectorSettings__rsaKey__pkcs11Provider={Provider}
 keyConnectorSettings__rsaKey__pkcs11SlotTokenSerialNumber={TokenSerialNumber}
 # Available user types: user, so, context_specific
