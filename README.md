@@ -1,7 +1,3 @@
-<a href="https://hub.docker.com/r/bitwarden/key-connector" target="_blank">
-  <img src="https://img.shields.io/docker/pulls/bitwarden/key-connector.svg" alt="DockerHub" />
-</a>
-
 # Bitwarden Key Connector
 
 The Bitwarden Key Connector is a self-hosted web application that stores and provides cryptographic keys to Bitwarden
@@ -13,7 +9,7 @@ and deployed cross-platform on Windows, macOS, and Linux distributions.
 ## Deploy
 
 The Bitwarden Key Connector can be deployed using the pre-built docker container available on
-[DockerHub](https://hub.docker.com/r/bitwarden/key-connector).
+[ghcr.io](https://github.com/bitwarden/self-host/pkgs/container/key-connector).
 
 ## Configuration
 
