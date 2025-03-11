@@ -45,6 +45,9 @@ jobs:
       _AZ_REGISTRY: bitwardenprod.azurecr.io
       _PROJECT_NAME: key-connector
       _RELEASE_VERSION: ${{ needs.setup.outputs.release-version }}
+    permissions:
+      id-token: write
+      packages: write
     steps:
       - name: Install Cosign
         uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50bcb52f4837da5e9b6a # v3.8.1
