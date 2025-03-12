@@ -21,7 +21,7 @@ on:
 jobs:
   setup:
     name: Setup
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       release-version: ${{ steps.version-output.outputs.version }}
     steps:
@@ -39,14 +39,19 @@ jobs:
 
   publish-docker:
     name: Publish Docker images
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: setup
     env:
       _AZ_REGISTRY: bitwardenprod.azurecr.io
       _PROJECT_NAME: key-connector
       _RELEASE_VERSION: ${{ needs.setup.outputs.release-version }}
-
+    permissions:
+      id-token: write
+      packages: write
     steps:
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50bcb52f4837da5e9b6a # v3.8.1
+
       - name: Log in to Azure
         uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
         with:
@@ -55,12 +60,12 @@ jobs:
       - name: Log in to ACR
         run: az acr login -n ${_AZ_REGISTRY%.azurecr.io}
 
-      - name: Set up DCT
-        id: setup-dct
-        uses: bitwarden/gh-actions/setup-docker-trust@main
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
-          azure-creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
-          azure-keyvault-name: "bitwarden-ci"
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Pull image
         run: docker pull $_AZ_REGISTRY/$_PROJECT_NAME:dev
@@ -68,13 +73,13 @@ jobs:
       - name: Tag version and latest
         run: |
           if [[ "${{ inputs.publish_type }}" == "Dry Run" ]]; then
-            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev bitwarden/$_PROJECT_NAME:dryrun
+            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev ghcr.io/bitwarden/$_PROJECT_NAME:dryrun
           else
             docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev $_AZ_REGISTRY/$_PROJECT_NAME:$_RELEASE_VERSION
             docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev $_AZ_REGISTRY/$_PROJECT_NAME:latest
 
-            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev bitwarden/$_PROJECT_NAME:$_RELEASE_VERSION
-            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev bitwarden/$_PROJECT_NAME:latest
+            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev ghcr.io/bitwarden/$_PROJECT_NAME:$_RELEASE_VERSION
+            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev ghcr.io/bitwarden/$_PROJECT_NAME:latest
           fi
 
       - name: Push release version and latest image to ACR
@@ -83,14 +88,30 @@ jobs:
           docker push $_AZ_REGISTRY/$_PROJECT_NAME:$_RELEASE_VERSION
           docker push $_AZ_REGISTRY/$_PROJECT_NAME:latest
 
-      - name: Push release version and latest image to Docker Hub
+      - name: Push release version and latest image
         if: ${{ inputs.publish_type != 'Dry Run' }}
-        env:
-          DOCKER_CONTENT_TRUST: 1
-          DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ${{ steps.setup-dct.outputs.dct-delegate-repo-passphrase }}
         run: |
-          docker push bitwarden/$_PROJECT_NAME:$_RELEASE_VERSION
-          docker push bitwarden/$_PROJECT_NAME:latest
+          docker push ghcr.io/bitwarden/$_PROJECT_NAME:$_RELEASE_VERSION
+          docker push ghcr.io/bitwarden/$_PROJECT_NAME:latest
+
+      - name: Sign image with Cosign
+        run: |
+          cosign sign --yes ghcr.io/bitwarden/$_PROJECT_NAME:$_RELEASE_VERSION
+          cosign sign --yes ghcr.io/bitwarden/$_PROJECT_NAME:latest
+
+      - name: Verify the signed image with Cosign
+        run: |
+          cosign verify \
+            --certificate-identity "${{ github.server_url }}/${{ github.workflow_ref }}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            ghcr.io/bitwarden/$_PROJECT_NAME:$_RELEASE_VERSION
+
+          cosign verify \
+            --certificate-identity "${{ github.server_url }}/${{ github.workflow_ref }}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            ghcr.io/bitwarden/$_PROJECT_NAME:latest
 
       - name: Log out of Docker
-        run: docker logout
+        run: |
+          docker logout ghcr.io
+          docker logout $_AZ_REGISTRY
