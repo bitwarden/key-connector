@@ -2,7 +2,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS build
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-    gosu=1.14* \
     curl=7.88.1* \
     libc6-dev=2.36* \
     opensc=0.23.0* \
