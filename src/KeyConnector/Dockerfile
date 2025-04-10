@@ -1,6 +1,4 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
-
-LABEL com.bitwarden.product="bitwarden"
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS build
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -20,15 +18,20 @@ RUN curl -O https://developers.yubico.com/YubiHSM2/Releases/yubihsm2-sdk-2023-11
     && apt-get install -y -f --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-azurelinux3.0-distroless-extra AS final
+
+LABEL com.bitwarden.product="bitwarden"
+
+# Copy the YubiHSM2 SDK libraries and dependencies
+COPY --from=build /usr/lib/x86_64-linux-gnu/* /usr/lib/x86_64-linux-gnu/
+
+USER app
 ENV ASPNETCORE_URLS http://+:5000
 WORKDIR /app
 EXPOSE 5000
 
 COPY obj/build-output/publish .
 
-COPY entrypoint.sh /
-RUN chmod +x /entrypoint.sh
-
 HEALTHCHECK CMD curl -f http://localhost:5000/health || exit 1
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["dotnet", "/app/KeyConnector.dll"]
