@@ -24,13 +24,14 @@ LABEL com.bitwarden.product="bitwarden"
 # Copy the YubiHSM2 SDK libraries and dependencies
 COPY --from=build /usr/lib/x86_64-linux-gnu/* /usr/lib/x86_64-linux-gnu/
 
+COPY --from=ghcr.io/alexaka1/distroless-dotnet-healthchecks:1 / /healthchecks
+HEALTHCHECK CMD ["/healthchecks/Distroless.HealthChecks", "--uri", "http://localhost:5000/health"]
+
 USER app
 ENV ASPNETCORE_URLS http://+:5000
 WORKDIR /app
 EXPOSE 5000
 
 COPY obj/build-output/publish .
-
-HEALTHCHECK CMD curl -f http://localhost:5000/health || exit 1
 
 ENTRYPOINT ["dotnet", "/app/KeyConnector.dll"]
