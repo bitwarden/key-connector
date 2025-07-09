@@ -22,6 +22,8 @@ jobs:
   setup:
     name: Setup
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     outputs:
       release-version: ${{ steps.version-output.outputs.version }}
     steps:
@@ -53,9 +55,11 @@ jobs:
         uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50bcb52f4837da5e9b6a # v3.8.1
 
       - name: Log in to Azure
-        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
+        uses: bitwarden/gh-actions/azure-login@main
         with:
-          creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
+          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          client_id: ${{ secrets.AZURE_CLIENT_ID }}
 
       - name: Log in to ACR
         run: az acr login -n ${_AZ_REGISTRY%.azurecr.io}
@@ -115,3 +119,6 @@ jobs:
         run: |
           docker logout ghcr.io
           docker logout $_AZ_REGISTRY
+
+      - name: Log out from Azure
+        uses: bitwarden/gh-actions/azure-logout@main

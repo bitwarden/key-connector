@@ -17,6 +17,8 @@ jobs:
   setup:
     name: Setup
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     outputs:
       release_version: ${{ steps.version.outputs.version }}
       branch-name: ${{ steps.branch.outputs.branch-name }}
@@ -54,6 +56,8 @@ jobs:
     if: ${{ inputs.release_type != 'Dry Run' }}
     runs-on: ubuntu-22.04
     needs: setup
+    permissions:
+      contents: write
     steps:
       - name: Create release
         uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5 # v1.14.0
@@ -72,16 +76,21 @@ jobs:
     needs:
       - release-github
       - setup
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Check if any job failed
         if: github.ref == 'refs/heads/main' && contains(needs.*.result, 'failure')
         run: exit 1
 
       - name: Log in to Azure
-        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
         if: failure()
+        uses: bitwarden/gh-actions/azure-login@main
         with:
-          creds: ${{ secrets.AZURE_KV_CI_SERVICE_PRINCIPAL }}
+          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          client_id: ${{ secrets.AZURE_CLIENT_ID }}
 
       - name: Retrieve secrets
         id: retrieve-secrets
@@ -90,6 +99,10 @@ jobs:
         with:
           keyvault: "bitwarden-ci"
           secrets: "devops-alerts-slack-webhook-url"
+
+      - name: Log out from Azure
+        if: failure()
+        uses: bitwarden/gh-actions/azure-logout@main
 
       - name: Notify Slack on failure
         uses: act10ns/slack@44541246747a30eb3102d87f7a4cc5471b0ffb7d # v2.1.0
