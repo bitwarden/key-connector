@@ -64,6 +64,7 @@
             //      Providers:
             //      yubihsm
             //      opensc
+            //      futurex
             public string Pkcs11Provider { get; set; }
             public string Pkcs11LibraryPath { get; set; }
             public string Pkcs11SlotTokenSerialNumber { get; set; }
