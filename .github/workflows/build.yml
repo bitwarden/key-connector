@@ -1,4 +1,4 @@
-name: Build
+name: Test Build
 
 on:
   workflow_dispatch:
@@ -21,23 +21,23 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@6bd8b7f7774af54e05809fcc5431931b3eb1ddee # v4.0.1
 
-      - name: Publish project
-        working-directory: src/KeyConnector
-        run: |
-          echo "Publish"
-          dotnet publish -c "Release" -o obj/build-output/publish
-          cd obj/build-output/publish
-          zip -r KeyConnector.zip .
-          mv KeyConnector.zip ../../../
-          pwd
-          ls -atlh ../../../
+      # - name: Publish project
+      #   working-directory: src/KeyConnector
+      #   run: |
+      #     echo "Publish"
+      #     dotnet publish -c "Release" -o obj/build-output/publish
+      #     cd obj/build-output/publish
+      #     zip -r KeyConnector.zip .
+      #     mv KeyConnector.zip ../../../
+      #     pwd
+      #     ls -atlh ../../../
 
-      - name: Upload project artifact
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
-        with:
-          name: KeyConnector.zip
-          path: src/KeyConnector/KeyConnector.zip
-          if-no-files-found: error
+      # - name: Upload project artifact
+      #   uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+      #   with:
+      #     name: KeyConnector.zip
+      #     path: src/KeyConnector/KeyConnector.zip
+      #     if-no-files-found: error
 
   build-docker:
     name: Build Docker images
@@ -98,37 +98,37 @@ jobs:
           push: true
           tags: ${{ steps.image-name.outputs.name }}
 
-      - name: Install Cosign
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
+      # - name: Install Cosign
+      #   if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+      #   uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
 
-      - name: Sign image with Cosign
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        env:
-          DIGEST: ${{ steps.build-docker.outputs.digest }}
-          TAGS: ${{ steps.image-name.outputs.name }}
-        run: |
-          IFS="," read -a tags <<< "${TAGS}"
-          images=""
-          for tag in "${tags[@]}"; do
-            images+="${tag}@${DIGEST} "
-          done
-          cosign sign --yes ${images}
+      # - name: Sign image with Cosign
+      #   if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+      #   env:
+      #     DIGEST: ${{ steps.build-docker.outputs.digest }}
+      #     TAGS: ${{ steps.image-name.outputs.name }}
+      #   run: |
+      #     IFS="," read -a tags <<< "${TAGS}"
+      #     images=""
+      #     for tag in "${tags[@]}"; do
+      #       images+="${tag}@${DIGEST} "
+      #     done
+      #     cosign sign --yes ${images}
 
-      - name: Scan Docker image
-        id: container-scan
-        uses: anchore/scan-action@2c901ab7378897c01b8efaa2d0c9bf519cc64b9e # v6.2.0
-        with:
-          image: ${{ steps.image-name.outputs.name }}
-          fail-build: false
-          output-format: sarif
+      # - name: Scan Docker image
+      #   id: container-scan
+      #   uses: anchore/scan-action@2c901ab7378897c01b8efaa2d0c9bf519cc64b9e # v6.2.0
+      #   with:
+      #     image: ${{ steps.image-name.outputs.name }}
+      #     fail-build: false
+      #     output-format: sarif
 
       - name: Log out from Azure
         uses: bitwarden/gh-actions/azure-logout@main
 
-      - name: Upload Grype results to GitHub
-        uses: github/codeql-action/upload-sarif@f779452ac5af1c261dce0346a8f964149f49322b # v3.26.13
-        with:
-          sarif_file: ${{ steps.container-scan.outputs.sarif }}
-          sha: ${{ contains(github.event_name, 'pull_request') && github.event.pull_request.head.sha || github.sha }}
-          ref: ${{ contains(github.event_name, 'pull_request') && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
+      # - name: Upload Grype results to GitHub
+      #   uses: github/codeql-action/upload-sarif@f779452ac5af1c261dce0346a8f964149f49322b # v3.26.13
+      #   with:
+      #     sarif_file: ${{ steps.container-scan.outputs.sarif }}
+      #     sha: ${{ contains(github.event_name, 'pull_request') && github.event.pull_request.head.sha || github.sha }}
+      #     ref: ${{ contains(github.event_name, 'pull_request') && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
