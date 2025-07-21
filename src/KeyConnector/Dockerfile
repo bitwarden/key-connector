@@ -29,7 +29,7 @@ COPY obj/build-output/publish .
 COPY entrypoint.sh /
 RUN chmod +x /entrypoint.sh
 
-RUN mkdir output && cp -r /app /entrypoint.sh /lib* /usr/lib* /output/
+RUN mkdir /output/ && cp -r /app /entrypoint.sh /lib* /usr/lib* /output/
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-azurelinux3.0-distroless-extra
 
