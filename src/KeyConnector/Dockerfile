@@ -20,6 +20,7 @@ RUN curl -O https://developers.yubico.com/YubiHSM2/Releases/yubihsm2-sdk-2023-11
     && apt-get install -y -f --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
+ENV ASPNETCORE_URLS http://+:5000
 WORKDIR /app
 EXPOSE 5000
 
@@ -28,7 +29,7 @@ COPY obj/build-output/publish .
 COPY entrypoint.sh /
 RUN chmod +x /entrypoint.sh
 
-RUN mkdir /output && cp -r /app /entrypoint.sh /lib* /usr/lib* /output/
+RUN mkdir output && cp -r /app /entrypoint.sh /lib* /usr/lib* /output/
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-azurelinux3.0-distroless-extra
 
