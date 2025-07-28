@@ -1,3 +1,4 @@
+# Build Stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 
 LABEL com.bitwarden.product="bitwarden"
@@ -32,3 +33,5 @@ RUN chmod +x /entrypoint.sh
 HEALTHCHECK CMD curl -f http://localhost:5000/health || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]
+
+# Final Stage
