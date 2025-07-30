@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
 
 LABEL com.bitwarden.product="bitwarden"
 
-RUN RUN apk update \
+RUN apk update \
     && apk add --no-cache \
     gosu \
     curl \
