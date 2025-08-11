@@ -1,14 +1,13 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
 
 LABEL com.bitwarden.product="bitwarden"
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    gosu=1.14* \
-    curl=7.88.1* \
-    libc6-dev=2.36* \
-    opensc=0.23.0* \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk update \
+    && apk add --no-cache \
+    gosu \
+    curl \
+    libc6-compat \
+    opensc
 
 # Install YubiHSM2 SDK
 RUN curl -O https://developers.yubico.com/YubiHSM2/Releases/yubihsm2-sdk-2023-11-debian12-amd64.tar.gz \
@@ -20,7 +19,7 @@ RUN curl -O https://developers.yubico.com/YubiHSM2/Releases/yubihsm2-sdk-2023-11
     && apt-get install -y -f --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-ENV ASPNETCORE_URLS http://+:5000
+ENV ASPNETCORE_URLS=http://+:5000
 WORKDIR /app
 EXPOSE 5000
 
