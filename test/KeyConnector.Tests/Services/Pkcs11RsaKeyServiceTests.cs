@@ -153,6 +153,7 @@ public class Pkcs11RsaKeyServiceTests
     [Theory]
     [InlineData("yubihsm", "/usr/lib/x86_64-linux-gnu/pkcs11/yubihsm_pkcs11.so")]
     [InlineData("opensc", "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so")]
+    [InlineData("futurex", "/usr/lib/x86_64-linux-gnu/fxpkcs11/libfxpkcs11.so")]
     public async Task DecryptAsync_UsesCorrectProviderPath_WhenLoadingLibrary(string provider, string path)
     {
         // Create mocks
@@ -398,6 +399,7 @@ public class Pkcs11RsaKeyServiceTests
     [Theory]
     [InlineData("yubihsm", "/usr/lib/x86_64-linux-gnu/pkcs11/yubihsm_pkcs11.so")]
     [InlineData("opensc", "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so")]
+    [InlineData("futurex", "/usr/lib/x86_64-linux-gnu/fxpkcs11/libfxpkcs11.so")]
     public async Task SignAsync_UsesCorrectProviderPath_WhenLoadingLibrary(string provider, string path)
     {
         // Create mocks
