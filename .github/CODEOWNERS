@@ -12,10 +12,10 @@ src/KeyConnector/KeyConnector.csproj
 Directory.Build.props
 
 ## Docker files have joint ownership ##
-**/Dockerfile @bitwarden/dept-bre @bitwarden/team-key-management-dev
-**/*.Dockerfile @bitwarden/dept-bre @bitwarden/team-key-management-dev
-**/.dockerignore @bitwarden/dept-bre @bitwarden/team-key-management-dev
-**/entrypoint.sh @bitwarden/dept-bre @bitwarden/team-key-management-dev
+**/Dockerfile @bitwarden/dept-bre @bitwarden/team-key-management-dev @bitwarden/team-appsec
+**/*.Dockerfile @bitwarden/dept-bre @bitwarden/team-key-management-dev @bitwarden/team-appsec
+**/.dockerignore @bitwarden/dept-bre @bitwarden/team-key-management-dev @bitwarden/team-appsec
+**/entrypoint.sh @bitwarden/dept-bre @bitwarden/team-key-management-dev @bitwarden/team-appsec
 
 ## BRE team owns these workflows ##
 .github/workflows/publish.yml @bitwarden/dept-bre
