@@ -7,12 +7,15 @@ on:
       - "main"
   pull_request:
 
-jobs:
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
+jobs:
   testing:
     name: Run tests
     if: ${{ startsWith(github.head_ref, 'version_bump_') == false }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       checks: write
       contents: read

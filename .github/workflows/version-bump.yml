@@ -30,17 +30,6 @@ jobs:
         with:
           version: ${{ inputs.version_number_override }}
 
-      - name: Check for Slack notifications
-        run: |
-          if [[ "${{ inputs.enable_slack_notification }}" == true ]]; then
-            echo "Slack notifications enabled."
-          else
-            echo "Slack notifications disabled."
-          fi
-
-      - name: Check out repo
-        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
-
       - name: Log in to Azure
         uses: bitwarden/gh-actions/azure-login@main
         with:
@@ -55,36 +44,25 @@ jobs:
           keyvault: gh-org-bitwarden
           secrets: "BW-GHAPP-ID,BW-GHAPP-KEY"
 
-      - name: Retrieve secrets
-        id: retrieve-secrets
-        uses: bitwarden/gh-actions/get-keyvault-secrets@main
-        with:
-          keyvault: "bitwarden-ci"
-          secrets: "github-gpg-private-key,
-            github-gpg-private-key-passphrase"
-
       - name: Log out from Azure
         uses: bitwarden/gh-actions/azure-logout@main
-
-      - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4 # v6.1.0
+      
+      - name: Generate GH App token
+        uses: actions/create-github-app-token@a8d616148505b5069dccd32f177bb87d7f39123b # v2.1.1
+        id: app-token
         with:
-          gpg_private_key: ${{ steps.retrieve-secrets.outputs.github-gpg-private-key }}
-          passphrase: ${{ steps.retrieve-secrets.outputs.github-gpg-private-key-passphrase }}
-          git_user_signingkey: true
-          git_commit_gpgsign: true
+          app-id: ${{ steps.get-kv-secrets.outputs.BW-GHAPP-ID }}
+          private-key: ${{ steps.get-kv-secrets.outputs.BW-GHAPP-KEY }}
+
+      - name: Check out repo
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Set up Git
         run: |
-          git config --local user.email "106330231+bitwarden-devops-bot@users.noreply.github.com"
-          git config --local user.name "bitwarden-devops-bot"
-
-      - name: Create version branch
-        id: create-branch
-        run: |
-          NAME=version_bump_${{ github.ref_name }}_$(date +"%Y-%m-%d")
-          git switch -c $NAME
-          echo "name=$NAME" >> $GITHUB_OUTPUT
+          git config --local user.email "178206702+bw-ghapp[bot]@users.noreply.github.com"
+          git config --local user.name "bw-ghapp[bot]"
 
       - name: Install xmllint
         run: |
@@ -226,4 +204,3 @@ jobs:
           AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          
