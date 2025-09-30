@@ -1,12 +1,10 @@
 name: Cleanup Container Images
 
 on:
-  pull_request:
-    types: [closed]
   delete:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.ref || github.event.pull_request.head.ref }}
+  group: ${{ github.workflow }}-${{ github.event.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -19,13 +17,9 @@ jobs:
       - name: Generate image tag to delete
         id: tag
         run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            IMAGE_TAG="pr-${{ github.event.pull_request.number }}"
-          else
-            # For deleted branches
-            BRANCH_NAME="${{ github.event.ref }}"
-            IMAGE_TAG=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9._-]+/-/g; s/-+/-/g; s/^-+|-+$//g' | cut -c1-128 | sed -E 's/[.-]$//')
-          fi
+          # Sanitize deleted branch name to match build workflow tag generation
+          BRANCH_NAME="${{ github.event.ref }}"
+          IMAGE_TAG=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9._-]+/-/g; s/-+/-/g; s/^-+|-+$//g' | cut -c1-128 | sed -E 's/[.-]$//')
           echo "tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Delete container image version
