@@ -21,8 +21,6 @@ jobs:
       contents: read
     outputs:
       release_version: ${{ steps.version.outputs.version }}
-      branch-name: ${{ steps.branch.outputs.branch-name }}
-
     steps:
       - name: Check branch
         if: ${{ inputs.release_type != 'Dry Run' }}

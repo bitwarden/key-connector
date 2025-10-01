@@ -25,7 +25,7 @@ jobs:
     permissions:
       contents: read
     outputs:
-      release-version: ${{ steps.version-output.outputs.version }}
+      release_version: ${{ steps.version-output.outputs.version }}
     steps:
       - name: Version output
         id: version-output
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-24.04
     needs: setup
     env:
-      _RELEASE_VERSION: ${{ needs.setup.outputs.release-version }}
+      _RELEASE_VERSION: ${{ needs.setup.outputs.release_version }}
     permissions:
       id-token: write
       packages: write

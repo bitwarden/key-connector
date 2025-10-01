@@ -144,9 +144,7 @@ jobs:
 
       - name: Push changes
         if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
-        env:
-          PR_BRANCH: ${{ steps.create-branch.outputs.name }}
-        run: git push -u origin $PR_BRANCH
+        run: git push -u origin ${{ github.ref }}
 
       - name: Report upcoming release version to Slack
         if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' && inputs.enable_slack_notification == true }}
