@@ -40,6 +40,8 @@ jobs:
 
       - name: Check out repo
         uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: true
 
       - name: Log in to Azure
         uses: bitwarden/gh-actions/azure-login@main
@@ -82,9 +84,9 @@ jobs:
       - name: Create version branch
         id: create-branch
         run: |
-          NAME=version_bump_${{ github.ref_name }}_$(date +"%Y-%m-%d")
-          git switch -c $NAME
-          echo "name=$NAME" >> $GITHUB_OUTPUT
+          NAME="version_bump_${GITHUB_REF_NAME}_$(date +"%Y-%m-%d")"
+          git switch -c "$NAME"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
 
       - name: Install xmllint
         run: |
@@ -95,7 +97,7 @@ jobs:
         id: current-version
         run: |
           CURRENT_VERSION=$(xmllint -xpath "/Project/PropertyGroup/Version/text()" Directory.Build.props)
-          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Verify input version
         if: ${{ inputs.version_number_override != '' }}
@@ -143,32 +145,39 @@ jobs:
 
       - name: Set final version output
         id: set-final-version-output
+        env:
+          _BUMP_VERSION_OVERRIDE_OUTCOME: ${{ steps.bump-version-override.outcome }}
+          _INPUT_VERSION_NUMBER_OVERRIDE: ${{ inputs.version_number_override }}
+          _BUMP_VERSION_AUTOMATIC_OUTCOME: ${{ steps.bump-version-automatic.outcome }}
+          _CALCULATE_NEXT_VERSION: ${{ steps.calculate-next-version.outputs.version }}
         run: |
-          if [[ "${{ steps.bump-version-override.outcome }}" == "success" ]]; then
-            echo "version=${{ inputs.version_number_override }}" >> $GITHUB_OUTPUT
-          elif [[ "${{ steps.bump-version-automatic.outcome }}" == "success" ]]; then
-            echo "version=${{ steps.calculate-next-version.outputs.version }}" >> $GITHUB_OUTPUT
+          if [[ "${_BUMP_VERSION_OVERRIDE_OUTCOME}" == "success" ]]; then
+            echo "version=${_INPUT_VERSION_NUMBER_OVERRIDE}" >> "$GITHUB_OUTPUT"
+          elif [[ "${_BUMP_VERSION_AUTOMATIC_OUTCOME}" == "success" ]]; then
+            echo "version=${_CALCULATE_NEXT_VERSION}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Check if version changed
         id: version-changed
         run: |
           if [ -n "$(git status --porcelain)" ]; then
-            echo "changes_to_commit=TRUE" >> $GITHUB_OUTPUT
+            echo "changes_to_commit=TRUE" >> "$GITHUB_OUTPUT"
           else
-            echo "changes_to_commit=FALSE" >> $GITHUB_OUTPUT
+            echo "changes_to_commit=FALSE" >> "$GITHUB_OUTPUT"
             echo "No changes to commit!";
           fi
 
       - name: Commit files
         if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
-        run: git commit -m "Bumped version to ${{ steps.set-final-version-output.outputs.version }}" -a
+        env:
+          _FINAL_VERSION: ${{ steps.set-final-version-output.outputs.version }}
+        run: git commit -m "Bumped version to ${_FINAL_VERSION}" -a
 
       - name: Push changes
         if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
         env:
           PR_BRANCH: ${{ steps.create-branch.outputs.name }}
-        run: git push -u origin $PR_BRANCH
+        run: git push -u origin "$PR_BRANCH"
 
       - name: Generate GH App token
         uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
@@ -185,6 +194,7 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_BRANCH: ${{ steps.create-branch.outputs.name }}
           TITLE: "Bump version to ${{ steps.set-final-version-output.outputs.version }}"
+          _FINAL_VERSION: ${{ steps.set-final-version-output.outputs.version }}
         run: |
           PR_URL=$(gh pr create --title "$TITLE" \
             --base "main" \
@@ -200,22 +210,22 @@ jobs:
               - [X] Other
 
               ## Objective
-              Automated version bump to ${{ steps.set-final-version-output.outputs.version }}")
-          echo "pr_number=${PR_URL##*/}" >> $GITHUB_OUTPUT
+              Automated version bump to ${_FINAL_VERSION}")
+          echo "pr_number=${PR_URL##*/}" >> "$GITHUB_OUTPUT"
 
       - name: Approve PR
         if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.create-pr.outputs.pr_number }}
-        run: gh pr review $PR_NUMBER --approve
+        run: gh pr review "$PR_NUMBER" --approve
 
       - name: Merge PR
         if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_NUMBER: ${{ steps.create-pr.outputs.pr_number }}
-        run: gh pr merge $PR_NUMBER --squash --auto --delete-branch
+        run: gh pr merge "$PR_NUMBER" --squash --auto --delete-branch
 
       - name: Report upcoming release version to Slack
         if: ${{ steps.version-changed.outputs.changes_to_commit == 'TRUE' && inputs.enable_slack_notification == true }}
