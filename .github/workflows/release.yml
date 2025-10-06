@@ -16,13 +16,11 @@ on:
 jobs:
   setup:
     name: Setup
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     outputs:
       release_version: ${{ steps.version.outputs.version }}
-      branch-name: ${{ steps.branch.outputs.branch-name }}
-
     steps:
       - name: Check branch
         if: ${{ inputs.release_type != 'Dry Run' }}
@@ -54,7 +52,7 @@ jobs:
   release-github:
     name: Create GitHub Release
     if: ${{ inputs.release_type != 'Dry Run' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: setup
     permissions:
       contents: write
@@ -72,7 +70,7 @@ jobs:
   check-failures:
     name: Check for failures
     if: always()
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs:
       - release-github
       - setup
