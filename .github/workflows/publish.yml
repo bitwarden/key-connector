@@ -81,22 +81,16 @@ jobs:
           docker push ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION
           docker push ghcr.io/bitwarden/key-connector:latest
 
-      - name: Sign image with Cosign
-        if: ${{ inputs.publish_type != 'Dry Run' }}
-        run: |
-          cosign sign --yes ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION
-          cosign sign --yes ghcr.io/bitwarden/key-connector:latest
-
       - name: Verify the signed image with Cosign
         if: ${{ inputs.publish_type != 'Dry Run' }}
         run: |
           cosign verify \
-            --certificate-identity "${{ github.server_url }}/${{ github.workflow_ref }}" \
+            --certificate-identity-regexp="https://github\.com/bitwarden/key-connector/.*" \
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
             ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION
 
           cosign verify \
-            --certificate-identity "${{ github.server_url }}/${{ github.workflow_ref }}" \
+            --certificate-identity-regexp="https://github\.com/bitwarden/key-connector/.*" \
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
             ghcr.io/bitwarden/key-connector:latest
 
