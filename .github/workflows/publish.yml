@@ -92,7 +92,7 @@ jobs:
             "ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION"
 
           cosign verify \
-            --certificate-identity "${{ github.server_url }}/${{ github.workflow_ref }}" \
+            --certificate-identity "${GITHUB_SERVER_URL}/${GITHUB_WORKFLOW_REF}" \
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
             ghcr.io/bitwarden/key-connector:latest
 
