@@ -29,18 +29,20 @@ jobs:
     steps:
       - name: Version output
         id: version-output
+        env:
+          _INPUT_VERSION: ${{ inputs.version }}
         run: |
-          if [[ "${{ inputs.version }}" == "latest" || "${{ inputs.version }}" == "" ]]; then
+          if [[ "${_INPUT_VERSION}" == "latest" || "${_INPUT_VERSION}" == "" ]]; then
             VERSION=$(curl -sSfL "https://api.github.com/repos/bitwarden/key-connector/releases" | jq -c '.[] | select(.tag_name) | .tag_name' | head -1 | grep -ohE '20[0-9]{2}\.([1-9]|1[0-2])\.[0-9]+')
             if [[ -z "$VERSION" ]]; then
               echo "Failed to fetch latest version"
               exit 1
             fi
             echo "Latest Released Version: $VERSION"
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           else
-            echo "Release Version: ${{ inputs.version }}"
-            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+            echo "Release Version: ${_INPUT_VERSION}"
+            echo "version=${_INPUT_VERSION}" >> "$GITHUB_OUTPUT"
           fi
 
   publish-docker:
@@ -71,14 +73,14 @@ jobs:
           if [[ "${{ inputs.publish_type }}" == "Dry Run" ]]; then
             docker tag ghcr.io/bitwarden/key-connector:dev ghcr.io/bitwarden/key-connector:dryrun
           else
-            docker tag ghcr.io/bitwarden/key-connector:dev ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION
+            docker tag ghcr.io/bitwarden/key-connector:dev "ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION"
             docker tag ghcr.io/bitwarden/key-connector:dev ghcr.io/bitwarden/key-connector:latest
           fi
 
       - name: Push release version and latest image
         if: ${{ inputs.publish_type != 'Dry Run' }}
         run: |
-          docker push ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION
+          docker push "ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION"
           docker push ghcr.io/bitwarden/key-connector:latest
 
       - name: Verify the signed image with Cosign
@@ -87,10 +89,10 @@ jobs:
           cosign verify \
             --certificate-identity-regexp="https://github\.com/bitwarden/key-connector/.*" \
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
-            ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION
+            "ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION"
 
           cosign verify \
-            --certificate-identity-regexp="https://github\.com/bitwarden/key-connector/.*" \
+            --certificate-identity "${GITHUB_SERVER_URL}/${GITHUB_WORKFLOW_REF}" \
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
             ghcr.io/bitwarden/key-connector:latest
 
