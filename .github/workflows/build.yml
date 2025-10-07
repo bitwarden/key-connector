@@ -7,10 +7,14 @@ on:
       - "main"
   pull_request:
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
   build-artifacts:
     name: Build artifacts
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
 
@@ -26,13 +30,10 @@ jobs:
       - name: Publish project
         working-directory: src/KeyConnector
         run: |
-          echo "Publish"
           dotnet publish -c "Release" -o obj/build-output/publish
           cd obj/build-output/publish
           zip -r KeyConnector.zip .
           mv KeyConnector.zip ../../../
-          pwd
-          ls -atlh ../../../
 
       - name: Upload project artifact
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
@@ -40,39 +41,44 @@ jobs:
           name: KeyConnector.zip
           path: src/KeyConnector/KeyConnector.zip
           if-no-files-found: error
+          retention-days: 7
 
   build-docker:
     name: Build Docker images
     runs-on: ubuntu-24.04
     needs: build-artifacts
     permissions:
-      security-events: write
       id-token: write
-    env:
-      _AZ_REGISTRY: bitwardenprod.azurecr.io
-      _PROJECT_NAME: key-connector
+      packages: write
+      security-events: write
     steps:
       - name: Check out repo
         uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
         with:
           persist-credentials: false
 
-      - name: Log in to Azure
-        uses: bitwarden/gh-actions/azure-login@main
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
         with:
-          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          client_id: ${{ secrets.AZURE_CLIENT_ID }}
-
-      - name: Log in to ACR
-        run: az acr login -n "${_AZ_REGISTRY%.azurecr.io}"
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate Docker image tag
         id: tag
         run: |
-          IMAGE_TAG=$(echo "${GITHUB_REF:11}" | sed "s#/#-#g")  # slash safe branch name
-          if [[ "$IMAGE_TAG" == "main" ]]; then
+          # Main branch always uses 'dev' tag
+          if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
             IMAGE_TAG=dev
+          # PRs use 'pr-<number>' format for consistency
+          elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            IMAGE_TAG="pr-${{ github.event.pull_request.number }}"
+          # Other branches: sanitize name for Docker tag compatibility
+          else
+            # Extract branch name from refs
+            IMAGE_TAG="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+            # Lowercase, replace invalid chars with dash, collapse dashes, trim, limit to 128 chars, remove trailing separators
+            IMAGE_TAG=$(echo "$IMAGE_TAG" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9._-]+/-/g; s/-+/-/g; s/^-+|-+$//g' | cut -c1-128 | sed -E 's/[.-]$//')
           fi
           echo "image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
 
@@ -80,7 +86,7 @@ jobs:
         id: image-name
         env:
           IMAGE_TAG: ${{ steps.tag.outputs.image_tag }}
-        run: echo "name=${_AZ_REGISTRY}/${_PROJECT_NAME}:${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+        run: echo "name=ghcr.io/bitwarden/key-connector:${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Get build artifact
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
@@ -99,7 +105,8 @@ jobs:
           context: src/KeyConnector
           file: src/KeyConnector/Dockerfile
           platforms: linux/amd64
-          push: true
+          load: ${{ github.event_name == 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.image-name.outputs.name }}
 
       - name: Install Cosign
@@ -128,12 +135,12 @@ jobs:
           fail-build: false
           output-format: sarif
 
-      - name: Log out from Azure
-        uses: bitwarden/gh-actions/azure-logout@main
-
       - name: Upload Grype results to GitHub
         uses: github/codeql-action/upload-sarif@80cb6b56b93de3e779c7d476d9100d06fb87c877 # codeql-bundle-v2.23.2
         with:
           sarif_file: ${{ steps.container-scan.outputs.sarif }}
           sha: ${{ contains(github.event_name, 'pull_request') && github.event.pull_request.head.sha || github.sha }}
           ref: ${{ contains(github.event_name, 'pull_request') && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
+
+      - name: Log out of Docker
+        run: docker logout ghcr.io
