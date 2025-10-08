@@ -29,8 +29,10 @@ jobs:
     steps:
       - name: Version output
         id: version-output
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          if [[ "${{ inputs.version }}" == "latest" || "${{ inputs.version }}" == "" ]]; then
+          if [[ "$INPUT_VERSION" == "latest" || "$INPUT_VERSION" == "" ]]; then
             VERSION=$(curl -sSfL "https://api.github.com/repos/bitwarden/key-connector/releases" | jq -c '.[] | select(.tag_name) | .tag_name' | head -1 | grep -ohE '20[0-9]{2}\.([1-9]|1[0-2])\.[0-9]+')
             if [[ -z "$VERSION" ]]; then
               echo "Failed to fetch latest version"
@@ -39,8 +41,8 @@ jobs:
             echo "Latest Released Version: $VERSION"
             echo "version=$VERSION" >> $GITHUB_OUTPUT
           else
-            echo "Release Version: ${{ inputs.version }}"
-            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+            echo "Release Version: $INPUT_VERSION"
+            echo "version=$INPUT_VERSION" >> $GITHUB_OUTPUT
           fi
 
   publish-docker:
@@ -63,32 +65,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull image
-        run: docker pull ghcr.io/bitwarden/key-connector:dev
+      - name: Pull versioned image
+        run: docker pull ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION
 
-      - name: Tag version and latest
-        run: |
-          if [[ "${{ inputs.publish_type }}" == "Dry Run" ]]; then
-            docker tag ghcr.io/bitwarden/key-connector:dev ghcr.io/bitwarden/key-connector:dryrun
-          else
-            docker tag ghcr.io/bitwarden/key-connector:dev ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION
-            docker tag ghcr.io/bitwarden/key-connector:dev ghcr.io/bitwarden/key-connector:latest
-          fi
+      - name: Tag as latest
+        run: docker tag ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION ghcr.io/bitwarden/key-connector:latest
 
-      - name: Push release version and latest image
+      - name: Push latest image
         if: ${{ inputs.publish_type != 'Dry Run' }}
-        run: |
-          docker push ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION
-          docker push ghcr.io/bitwarden/key-connector:latest
+        run: docker push ghcr.io/bitwarden/key-connector:latest
 
       - name: Verify the signed image with Cosign
         if: ${{ inputs.publish_type != 'Dry Run' }}
         run: |
-          cosign verify \
-            --certificate-identity-regexp="https://github\.com/bitwarden/key-connector/.*" \
-            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
-            ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION
-
           cosign verify \
             --certificate-identity-regexp="https://github\.com/bitwarden/key-connector/.*" \
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
