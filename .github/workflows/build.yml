@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - "main"
+    tags:
+      - "v*"
   pull_request:
 
 concurrency:
@@ -67,8 +69,11 @@ jobs:
       - name: Generate Docker image tag
         id: tag
         run: |
+          # Tags use the tag name as the image tag (strip leading 'v')
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            IMAGE_TAG="${GITHUB_REF#refs/tags/v}"
           # Main branch always uses 'dev' tag
-          if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
+          elif [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
             IMAGE_TAG=dev
           # PRs use 'pr-<number>' format for consistency
           elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
@@ -136,7 +141,7 @@ jobs:
           output-format: sarif
 
       - name: Upload Grype results to GitHub
-        uses: github/codeql-action/upload-sarif@80cb6b56b93de3e779c7d476d9100d06fb87c877 # codeql-bundle-v2.23.2
+        uses: github/codeql-action/upload-sarif@e296a935590eb16afc0c0108289f68c87e2a89a5 # v4.30.7
         with:
           sarif_file: ${{ steps.container-scan.outputs.sarif }}
           sha: ${{ contains(github.event_name, 'pull_request') && github.event.pull_request.head.sha || github.sha }}
