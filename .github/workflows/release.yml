@@ -48,8 +48,8 @@ jobs:
       - name: Get branch name
         id: branch
         run: |
-          BRANCH_NAME=$(basename $GITHUB_REF)
-          echo "branch-name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          BRANCH_NAME=$(basename "$GITHUB_REF")
+          echo "branch-name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
   release-github:
     name: Create GitHub Release

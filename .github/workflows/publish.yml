@@ -39,10 +39,10 @@ jobs:
               exit 1
             fi
             echo "Latest Released Version: $VERSION"
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           else
             echo "Release Version: $INPUT_VERSION"
-            echo "version=$INPUT_VERSION" >> $GITHUB_OUTPUT
+            echo "version=$INPUT_VERSION" >> "$GITHUB_OUTPUT"
           fi
 
   publish-docker:
@@ -66,14 +66,14 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Pull versioned image
-        run: docker pull ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION
+        run: docker pull "ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION"
 
       - name: Tag as latest
-        run: docker tag ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION ghcr.io/bitwarden/key-connector:latest
+        run: docker tag "ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION" "ghcr.io/bitwarden/key-connector:latest"
 
       - name: Push latest image
         if: ${{ inputs.publish_type != 'Dry Run' }}
-        run: docker push ghcr.io/bitwarden/key-connector:latest
+        run: docker push "ghcr.io/bitwarden/key-connector:latest"
 
       - name: Verify the signed image with Cosign
         if: ${{ inputs.publish_type != 'Dry Run' }}
@@ -81,7 +81,7 @@ jobs:
           cosign verify \
             --certificate-identity-regexp="https://github\.com/bitwarden/key-connector/.*" \
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
-            ghcr.io/bitwarden/key-connector:latest
+            "ghcr.io/bitwarden/key-connector:latest"
 
       - name: Log out of Docker
         run: docker logout ghcr.io
