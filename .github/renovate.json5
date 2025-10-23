@@ -1,17 +1,17 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>bitwarden/renovate-config"],
-  "enabledManagers": ["dockerfile", "github-actions", "nuget"],
-  "packageRules": [
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["github>bitwarden/renovate-config"],
+  enabledManagers: ["dockerfile", "github-actions", "nuget"],
+  packageRules: [
     {
-      "groupName": "dockerfile minor",
-      "matchManagers": ["dockerfile"],
-      "matchUpdateTypes": ["minor", "patch"]
+      groupName: "dockerfile minor",
+      matchManagers: ["dockerfile"],
+      matchUpdateTypes: ["minor", "patch"]
     },
     {
-      "groupName": "gh minor",
-      "matchManagers": ["github-actions"],
-      "matchUpdateTypes": ["minor", "patch"]
+      groupName: "gh minor",
+      matchManagers: ["github-actions"],
+      matchUpdateTypes: ["minor", "patch"]
     },
     // nuget groups
     {
@@ -36,9 +36,9 @@
       matchUpdateTypes: ["minor", "patch"]
     },
     {
-      "groupName": "nuget minor",
-      "matchManagers": ["nuget"],
-      "matchUpdateTypes": ["minor", "patch"]
+      groupName: "nuget minor",
+      matchManagers: ["nuget"],
+      matchUpdateTypes: ["minor", "patch"]
     },
     // Ignore major updates that require newer .NET SDK versions
     {
@@ -51,5 +51,5 @@
       enabled: false
     }
   ],
-  "ignoreDeps": ["dotnet-sdk"]
+  ignoreDeps: ["dotnet-sdk"]
 }
