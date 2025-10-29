@@ -25,3 +25,8 @@ Directory.Build.props
 .github/workflows/build.yml @bitwarden/dept-bre @bitwarden/team-key-management-dev
 .github/workflows/release.yml @bitwarden/dept-bre @bitwarden/team-key-management-dev
 .github/workflows/version-bump.yml @bitwarden/dept-bre @bitwarden/team-key-management-dev
+
+# Claude related files
+.claude/ @bitwarden/team-ai-sme
+.github/workflows/respond.yml @bitwarden/team-ai-sme
+.github/workflows/review-code.yml @bitwarden/team-ai-sme
