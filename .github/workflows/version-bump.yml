@@ -17,9 +17,7 @@ jobs:
     name: Bump version
     runs-on: ubuntu-22.04
     permissions:
-      contents: write
       id-token: write
-      pull-requests: write
     outputs:
       version: ${{ steps.set-final-version-output.outputs.version }}
 
