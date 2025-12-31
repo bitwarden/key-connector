@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.KeyManagementService" Version="3.7.2.6"/>
+    <PackageReference Include="AWSSDK.KeyManagementService" Version="4.0.8.3"/>
     <PackageReference Include="Azure.Identity" Version="1.11.4"/>
     <PackageReference Include="Azure.Security.KeyVault.Certificates" Version="4.5.1"/>
     <PackageReference Include="Azure.Security.KeyVault.Keys" Version="4.5.0"/>
