@@ -143,6 +143,7 @@ namespace Bit.KeyConnector.Services.Pkcs11
                 {
                     "yubihsm" => "/usr/lib/x86_64-linux-gnu/pkcs11/yubihsm_pkcs11.so",
                     "opensc" => "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so",
+                    "futurex" => "/usr/lib/x86_64-linux-gnu/fxpkcs11/libfxpkcs11.so",
                     _ => throw new Exception("Please provide a library path or known provider.")
                 };
             }
