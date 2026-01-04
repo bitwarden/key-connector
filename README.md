@@ -3,8 +3,7 @@
 The Bitwarden Key Connector is a self-hosted web application that stores and provides cryptographic keys to Bitwarden
 clients.
 
-The Key Connector project is written in C# using .NET Core with ASP.NET Core. The codebase can be developed, built, run,
-and deployed cross-platform on Windows and Linux distributions.
+The Key Connector project is written in C# using .NET Core with ASP.NET Core. The codebase can be developed, built and run on Windows, macOS and Linux. Production deployment is supported for Windows and Linux.
 
 For more information about Key Connector, see the [overview](https://bitwarden.com/help/about-key-connector/) in our Help Center.
 
