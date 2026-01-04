@@ -22,19 +22,27 @@ jobs:
   setup:
     name: Setup
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     outputs:
-      release-version: ${{ steps.version-output.outputs.version }}
+      release_version: ${{ steps.version-output.outputs.version }}
     steps:
       - name: Version output
         id: version-output
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          if [[ "${{ inputs.version }}" == "latest" || "${{ inputs.version }}" == "" ]]; then
-            VERSION=$(curl  "https://api.github.com/repos/bitwarden/directory-connector/releases" | jq -c '.[] | select(.tag_name) | .tag_name' | head -1 | grep -ohE '20[0-9]{2}\.([1-9]|1[0-2])\.[0-9]+')
+          if [[ "$INPUT_VERSION" == "latest" || "$INPUT_VERSION" == "" ]]; then
+            VERSION=$(curl -sSfL "https://api.github.com/repos/bitwarden/key-connector/releases" | jq -c '.[] | select(.tag_name) | .tag_name' | head -1 | grep -ohE '20[0-9]{2}\.([1-9]|1[0-2])\.[0-9]+')
+            if [[ -z "$VERSION" ]]; then
+              echo "Failed to fetch latest version"
+              exit 1
+            fi
             echo "Latest Released Version: $VERSION"
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           else
-            echo "Release Version: ${{ inputs.version }}"
-            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+            echo "Release Version: $INPUT_VERSION"
+            echo "version=$INPUT_VERSION" >> "$GITHUB_OUTPUT"
           fi
 
   publish-docker:
@@ -42,76 +50,27 @@ jobs:
     runs-on: ubuntu-24.04
     needs: setup
     env:
-      _AZ_REGISTRY: bitwardenprod.azurecr.io
-      _PROJECT_NAME: key-connector
-      _RELEASE_VERSION: ${{ needs.setup.outputs.release-version }}
+      _RELEASE_VERSION: ${{ needs.setup.outputs.release_version }}
     permissions:
       id-token: write
       packages: write
     steps:
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50bcb52f4837da5e9b6a # v3.8.1
-
-      - name: Log in to Azure
-        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
-        with:
-          creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
-
-      - name: Log in to ACR
-        run: az acr login -n ${_AZ_REGISTRY%.azurecr.io}
-
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Pull image
-        run: docker pull $_AZ_REGISTRY/$_PROJECT_NAME:dev
+      - name: Pull versioned image
+        run: docker pull "ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION"
 
-      - name: Tag version and latest
-        run: |
-          if [[ "${{ inputs.publish_type }}" == "Dry Run" ]]; then
-            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev ghcr.io/bitwarden/$_PROJECT_NAME:dryrun
-          else
-            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev $_AZ_REGISTRY/$_PROJECT_NAME:$_RELEASE_VERSION
-            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev $_AZ_REGISTRY/$_PROJECT_NAME:latest
+      - name: Tag as latest
+        run: docker tag "ghcr.io/bitwarden/key-connector:$_RELEASE_VERSION" "ghcr.io/bitwarden/key-connector:latest"
 
-            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev ghcr.io/bitwarden/$_PROJECT_NAME:$_RELEASE_VERSION
-            docker tag $_AZ_REGISTRY/$_PROJECT_NAME:dev ghcr.io/bitwarden/$_PROJECT_NAME:latest
-          fi
-
-      - name: Push release version and latest image to ACR
+      - name: Push latest image
         if: ${{ inputs.publish_type != 'Dry Run' }}
-        run: |
-          docker push $_AZ_REGISTRY/$_PROJECT_NAME:$_RELEASE_VERSION
-          docker push $_AZ_REGISTRY/$_PROJECT_NAME:latest
-
-      - name: Push release version and latest image
-        if: ${{ inputs.publish_type != 'Dry Run' }}
-        run: |
-          docker push ghcr.io/bitwarden/$_PROJECT_NAME:$_RELEASE_VERSION
-          docker push ghcr.io/bitwarden/$_PROJECT_NAME:latest
-
-      - name: Sign image with Cosign
-        run: |
-          cosign sign --yes ghcr.io/bitwarden/$_PROJECT_NAME:$_RELEASE_VERSION
-          cosign sign --yes ghcr.io/bitwarden/$_PROJECT_NAME:latest
-
-      - name: Verify the signed image with Cosign
-        run: |
-          cosign verify \
-            --certificate-identity "${{ github.server_url }}/${{ github.workflow_ref }}" \
-            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
-            ghcr.io/bitwarden/$_PROJECT_NAME:$_RELEASE_VERSION
-
-          cosign verify \
-            --certificate-identity "${{ github.server_url }}/${{ github.workflow_ref }}" \
-            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
-            ghcr.io/bitwarden/$_PROJECT_NAME:latest
+        run: docker push "ghcr.io/bitwarden/key-connector:latest"
 
       - name: Log out of Docker
-        run: |
-          docker logout ghcr.io
-          docker logout $_AZ_REGISTRY
+        run: docker logout ghcr.io

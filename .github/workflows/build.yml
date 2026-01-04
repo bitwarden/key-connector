@@ -5,77 +5,96 @@ on:
   push:
     branches:
       - "main"
+    tags:
+      - "v*"
   pull_request:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
   build-artifacts:
     name: Build artifacts
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
 
     steps:
       - name: Check out repo
         uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        with:
+          persist-credentials: false
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@6bd8b7f7774af54e05809fcc5431931b3eb1ddee # v4.0.1
+        uses: actions/setup-dotnet@d4c94342e560b34958eacfc5d055d21461ed1c5d # v5.0.0
 
       - name: Publish project
         working-directory: src/KeyConnector
         run: |
-          echo "Publish"
           dotnet publish -c "Release" -o obj/build-output/publish
           cd obj/build-output/publish
           zip -r KeyConnector.zip .
           mv KeyConnector.zip ../../../
-          pwd
-          ls -atlh ../../../
 
       - name: Upload project artifact
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: KeyConnector.zip
           path: src/KeyConnector/KeyConnector.zip
           if-no-files-found: error
+          retention-days: 7
 
   build-docker:
     name: Build Docker images
     runs-on: ubuntu-24.04
     needs: build-artifacts
     permissions:
-      security-events: write
       id-token: write
-    env:
-      _AZ_REGISTRY: bitwardenprod.azurecr.io
-      _PROJECT_NAME: key-connector
+      packages: write
+      security-events: write
     steps:
       - name: Check out repo
         uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
-
-      - name: Log in to Azure
-        uses: Azure/login@e15b166166a8746d1a47596803bd8c1b595455cf # v1.6.0
         with:
-          creds: ${{ secrets.AZURE_PROD_KV_CREDENTIALS }}
+          persist-credentials: false
 
-      - name: Log in to ACR
-        run: az acr login -n ${_AZ_REGISTRY%.azurecr.io}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate Docker image tag
         id: tag
         run: |
-          IMAGE_TAG=$(echo "${GITHUB_REF:11}" | sed "s#/#-#g")  # slash safe branch name
-          if [[ "$IMAGE_TAG" == "main" ]]; then
+          # Tags use the tag name as the image tag (strip leading 'v')
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            IMAGE_TAG="${GITHUB_REF#refs/tags/v}"
+          # Main branch always uses 'dev' tag
+          elif [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
             IMAGE_TAG=dev
+          # PRs use 'pr-<number>' format for consistency
+          elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            IMAGE_TAG="pr-${{ github.event.pull_request.number }}"
+          # Other branches: sanitize name for Docker tag compatibility
+          else
+            # Extract branch name from refs
+            IMAGE_TAG="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+            # Lowercase, replace invalid chars with dash, collapse dashes, trim, limit to 128 chars, remove trailing separators
+            IMAGE_TAG=$(echo "$IMAGE_TAG" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9._-]+/-/g; s/-+/-/g; s/^-+|-+$//g' | cut -c1-128 | sed -E 's/[.-]$//')
           fi
-          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Generate full image name
         id: image-name
         env:
           IMAGE_TAG: ${{ steps.tag.outputs.image_tag }}
-        run: echo "name=${_AZ_REGISTRY}/${_PROJECT_NAME}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
+        run: echo "name=ghcr.io/bitwarden/key-connector:${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Get build artifact
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: KeyConnector.zip
 
@@ -91,12 +110,13 @@ jobs:
           context: src/KeyConnector
           file: src/KeyConnector/Dockerfile
           platforms: linux/amd64
-          push: true
+          load: ${{ github.event_name == 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.image-name.outputs.name }}
 
       - name: Install Cosign
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
+        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
 
       - name: Sign image with Cosign
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -104,24 +124,27 @@ jobs:
           DIGEST: ${{ steps.build-docker.outputs.digest }}
           TAGS: ${{ steps.image-name.outputs.name }}
         run: |
-          IFS="," read -a tags <<< "${TAGS}"
-          images=""
-          for tag in "${tags[@]}"; do
-            images+="${tag}@${DIGEST} "
+          IFS=',' read -r -a tags_array <<< "${TAGS}"
+          images=()
+          for tag in "${tags_array[@]}"; do
+            images+=("${tag}@${DIGEST}")
           done
-          cosign sign --yes ${images}
+          cosign sign --yes "${images[@]}"
 
       - name: Scan Docker image
         id: container-scan
-        uses: anchore/scan-action@2c901ab7378897c01b8efaa2d0c9bf519cc64b9e # v6.2.0
+        uses: anchore/scan-action@a5605eb0943e46279cb4fbd9d44297355d3520ab # v7.0.2
         with:
           image: ${{ steps.image-name.outputs.name }}
           fail-build: false
           output-format: sarif
 
       - name: Upload Grype results to GitHub
-        uses: github/codeql-action/upload-sarif@f779452ac5af1c261dce0346a8f964149f49322b # v3.26.13
+        uses: github/codeql-action/upload-sarif@e296a935590eb16afc0c0108289f68c87e2a89a5 # v4.30.7
         with:
           sarif_file: ${{ steps.container-scan.outputs.sarif }}
           sha: ${{ contains(github.event_name, 'pull_request') && github.event.pull_request.head.sha || github.sha }}
           ref: ${{ contains(github.event_name, 'pull_request') && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
+
+      - name: Log out of Docker
+        run: docker logout ghcr.io
