@@ -34,7 +34,7 @@ jobs:
         run: dotnet test --configuration Debug --logger "trx;LogFileName=test-results.trx" /p:CoverletOutputFormatter="cobertura" --collect:"XPlat Code Coverage"
 
       - name: Report test results
-        uses: dorny/test-reporter@31a54ee7ebcacc03a09ea97a7e5465a47b84aea5 # v1.9.1
+        uses: dorny/test-reporter@3d76b34a4535afbd0600d347b09a6ee5deb3ed7f # v2.6.0
         if: ${{ github.event.pull_request.head.repo.full_name == github.repository &&  !cancelled() }}
         with:
           name: Test Results
