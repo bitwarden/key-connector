@@ -130,7 +130,9 @@ public class UserKeysControllerTests
         var creationDate = DateTime.UtcNow.AddDays(-1);
         var existingUser = new UserKeyModel
         {
-            Id = _userId, Key = "oldEncryptedKey", CreationDate = creationDate
+            Id = _userId,
+            Key = "oldEncryptedKey",
+            CreationDate = creationDate
         };
         _userKeyRepository.ReadAsync(_userId).Returns(existingUser);
         _cryptoService.AesEncryptToB64Async("newPlaintextKey").Returns("newEncryptedKey");
