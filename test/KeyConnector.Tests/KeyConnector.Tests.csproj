@@ -14,7 +14,11 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="[17.10.0]" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="[8.0.0]" />
     <PackageReference Include="NSubstitute" Version="[5.1.0]" />
+    <PackageReference Include="Testcontainers.MariaDb" Version="[4.12.0]" />
     <PackageReference Include="Testcontainers.MongoDb" Version="[4.12.0]" />
+    <PackageReference Include="Testcontainers.MsSql" Version="[4.12.0]" />
+    <PackageReference Include="Testcontainers.MySql" Version="[4.12.0]" />
+    <PackageReference Include="Testcontainers.PostgreSql" Version="[4.12.0]" />
     <PackageReference Include="xunit" Version="[2.8.1]" />
     <PackageReference Include="xunit.runner.visualstudio" Version="[3.0.2]">
       <PrivateAssets>all</PrivateAssets>
