@@ -29,13 +29,15 @@ namespace Bit.KeyConnector.Repositories.JsonFile
         public override async Task UpdateAsync(UserKeyModel item)
         {
             var collection = DataStore.GetCollection<JsonUserKeyModel>(CollectionName);
-            await collection.ReplaceOneAsync(e => e.Id == item.Id.ToString(), new JsonUserKeyModel(item));
+            var idString = item.Id.ToString();
+            await collection.ReplaceOneAsync(e => e.Id == idString, new JsonUserKeyModel(item));
         }
 
         public override async Task DeleteAsync(Guid id)
         {
             var collection = DataStore.GetCollection<JsonUserKeyModel>(CollectionName);
-            await collection.DeleteOneAsync(e => e.Id == id.ToString());
+            var idString = id.ToString();
+            await collection.DeleteOneAsync(e => e.Id == idString);
         }
 
         // New model is required since JsonFlatFileDataStore doesn't handle Guid id types

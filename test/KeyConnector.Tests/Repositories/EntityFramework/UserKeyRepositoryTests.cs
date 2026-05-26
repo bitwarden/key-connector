@@ -83,7 +83,7 @@ public class SqliteFixture : EfFixtureBase
 
 public class SqlServerFixture : EfFixtureBase
 {
-    private readonly MsSqlContainer _container = new MsSqlBuilder("mcr.microsoft.com/mssql/server:latest").Build();
+    private readonly MsSqlContainer _container = new MsSqlBuilder(ContainerImages.SqlServer).Build();
 
     protected override async Task StartInfrastructureAsync() => await _container.StartAsync();
 
@@ -102,7 +102,7 @@ public class SqlServerFixture : EfFixtureBase
 
 public class PostgreSqlFixture : EfFixtureBase
 {
-    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder("postgres:latest").Build();
+    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder(ContainerImages.PostgreSql).Build();
 
     protected override async Task StartInfrastructureAsync() => await _container.StartAsync();
 
@@ -121,7 +121,7 @@ public class PostgreSqlFixture : EfFixtureBase
 
 public class MySqlFixture : EfFixtureBase
 {
-    private readonly MySqlContainer _container = new MySqlBuilder("mysql:latest").Build();
+    private readonly MySqlContainer _container = new MySqlBuilder(ContainerImages.MySql).Build();
 
     protected override async Task StartInfrastructureAsync() => await _container.StartAsync();
 
@@ -140,7 +140,7 @@ public class MySqlFixture : EfFixtureBase
 
 public class MariaDbFixture : EfFixtureBase
 {
-    private readonly MariaDbContainer _container = new MariaDbBuilder("mariadb:latest").Build();
+    private readonly MariaDbContainer _container = new MariaDbBuilder(ContainerImages.MariaDb).Build();
 
     protected override async Task StartInfrastructureAsync() => await _container.StartAsync();
 

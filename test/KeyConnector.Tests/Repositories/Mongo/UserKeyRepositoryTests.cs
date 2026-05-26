@@ -7,7 +7,7 @@ namespace KeyConnector.Tests.Repositories.Mongo;
 
 public class MongoFixture : IUserKeyRepositoryFixture
 {
-    private readonly MongoDbContainer _container = new MongoDbBuilder("mongo:latest").Build();
+    private readonly MongoDbContainer _container = new MongoDbBuilder(ContainerImages.Mongo).Build();
 
     public IUserKeyRepository Repository { get; private set; }
 

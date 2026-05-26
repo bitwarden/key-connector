@@ -10,6 +10,7 @@ namespace KeyConnector.Tests.Repositories.JsonFile;
 public class JsonFileFixture : IUserKeyRepositoryFixture
 {
     private string _tempDir;
+    private DataStore _dataStore;
 
     public IUserKeyRepository Repository { get; private set; }
 
@@ -18,13 +19,14 @@ public class JsonFileFixture : IUserKeyRepositoryFixture
         _tempDir = Path.Combine(Path.GetTempPath(), $"kc-json-test-{Guid.NewGuid()}");
         Directory.CreateDirectory(_tempDir);
         var dbPath = Path.Combine(_tempDir, "database.json");
-        var dataStore = new DataStore(dbPath, keyProperty: "--foobar--");
-        Repository = new UserKeyRepository(dataStore);
+        _dataStore = new DataStore(dbPath, keyProperty: "--foobar--");
+        Repository = new UserKeyRepository(_dataStore);
         return Task.CompletedTask;
     }
 
     public Task DisposeAsync()
     {
+        _dataStore?.Dispose();
         if (Directory.Exists(_tempDir))
         {
             Directory.Delete(_tempDir, true);

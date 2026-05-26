@@ -6,6 +6,15 @@ using Xunit;
 
 namespace KeyConnector.Tests.Repositories;
 
+public static class ContainerImages
+{
+    public const string SqlServer = "mcr.microsoft.com/mssql/server:2022-latest";
+    public const string PostgreSql = "postgres:14";
+    public const string MySql = "mysql:8";
+    public const string MariaDb = "mariadb:10";
+    public const string Mongo = "mongo:7";
+}
+
 public interface IUserKeyRepositoryFixture : IAsyncLifetime
 {
     IUserKeyRepository Repository { get; }
