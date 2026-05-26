@@ -89,13 +89,25 @@ public class UserKeysControllerIntegrationTests : IClassFixture<KeyConnectorWebA
     }
 
     [Fact]
-    public async Task Put_ReturnsNotFound_WhenUserDoesNotExist()
+    public async Task Put_CreatesUser_WhenUserDoesNotExist()
     {
-        var request = CreateRequest(HttpMethod.Put, Guid.NewGuid(), new { Key = GenerateBase64Key("key") });
+        var userId = Guid.NewGuid();
+        var key = GenerateBase64Key("put-create-key");
+        var beforePut = DateTime.UtcNow;
 
-        var response = await _client.SendAsync(request);
+        var putRequest = CreateRequest(HttpMethod.Put, userId, new { Key = key });
+        var putResponse = await _client.SendAsync(putRequest);
+        Assert.Equal(HttpStatusCode.OK, putResponse.StatusCode);
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var getRequest = CreateRequest(HttpMethod.Get, userId);
+        var getResponse = await _client.SendAsync(getRequest);
+        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+        var result = await getResponse.Content.ReadFromJsonAsync<UserKeyResponseModel>();
+        Assert.Equal(key, result.Key);
+
+        var stored = await _userKeyRepository.ReadAsync(userId);
+        Assert.InRange(stored.CreationDate, beforePut, DateTime.UtcNow);
     }
 
     [Fact]

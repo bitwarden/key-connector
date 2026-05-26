@@ -76,11 +76,19 @@ namespace Bit.KeyConnector.Controllers
             var user = await _userKeyRepository.ReadAsync(userId);
             if (user == null)
             {
-                return new NotFoundResult();
+                user = new UserKeyModel
+                {
+                    Id = userId,
+                    Key = await _cryptoService.AesEncryptToB64Async(model.Key)
+                };
+                await _userKeyRepository.CreateAsync(user);
             }
-            user.Key = await _cryptoService.AesEncryptToB64Async(model.Key);
-            user.RevisionDate = DateTime.UtcNow;
-            await _userKeyRepository.UpdateAsync(user);
+            else
+            {
+                user.Key = await _cryptoService.AesEncryptToB64Async(model.Key);
+                user.RevisionDate = DateTime.UtcNow;
+                await _userKeyRepository.UpdateAsync(user);
+            }
             return new OkResult();
         }
 

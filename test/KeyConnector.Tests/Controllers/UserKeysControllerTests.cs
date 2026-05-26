@@ -114,13 +114,22 @@ public class UserKeysControllerTests
     }
 
     [Fact]
-    public async Task Put_ReturnsNotFound_WhenUserDoesNotExist()
+    public async Task Put_CreatesUser_WhenUserDoesNotExist()
     {
         _userKeyRepository.ReadAsync(_userId).Returns((UserKeyModel)null);
+        _cryptoService.AesEncryptToB64Async("newKey").Returns("encryptedNewKey");
+        UserKeyModel capturedUser = null;
+        await _userKeyRepository.CreateAsync(Arg.Do<UserKeyModel>(u => capturedUser = u));
+        var beforeCreate = DateTime.UtcNow;
 
         var result = await _sut.Put(new UserKeyRequestModel { Key = "newKey" });
 
-        Assert.IsType<NotFoundResult>(result);
+        Assert.IsType<OkResult>(result);
+        Assert.NotNull(capturedUser);
+        Assert.Equal(_userId, capturedUser.Id);
+        Assert.Equal("encryptedNewKey", capturedUser.Key);
+        Assert.InRange(capturedUser.CreationDate, beforeCreate, DateTime.UtcNow);
+        await _userKeyRepository.Received(1).CreateAsync(capturedUser);
         await _userKeyRepository.DidNotReceive().UpdateAsync(Arg.Any<UserKeyModel>());
     }
 
@@ -147,5 +156,6 @@ public class UserKeysControllerTests
         Assert.NotNull(existingUser.RevisionDate);
         Assert.InRange(existingUser.RevisionDate.Value, beforeUpdate, DateTime.UtcNow);
         await _userKeyRepository.Received(1).UpdateAsync(existingUser);
+        await _userKeyRepository.DidNotReceive().CreateAsync(Arg.Any<UserKeyModel>());
     }
 }
