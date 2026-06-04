@@ -14,7 +14,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Net.Pkcs11Interop.HighLevelAPI.MechanismParams;
 
-namespace KeyConnector.Tests.Services;
+namespace KeyConnector.Tests.Services.RsaKey;
 
 internal delegate void InitializationModifier(
     ICertificateProviderService certificateProviderService,
