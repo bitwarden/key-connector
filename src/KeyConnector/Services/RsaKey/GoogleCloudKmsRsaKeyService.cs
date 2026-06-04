@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Google.Cloud.Kms.V1;
 using Google.Protobuf;
 
-namespace Bit.KeyConnector.Services
+namespace Bit.KeyConnector.Services.RsaKey
 {
     public class GoogleCloudKmsRsaKeyService : IRsaKeyService
     {

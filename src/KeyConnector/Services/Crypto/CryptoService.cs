@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Bit.KeyConnector.Repositories;
+using Bit.KeyConnector.Services.RsaKey;
 
-namespace Bit.KeyConnector.Services
+namespace Bit.KeyConnector.Services.Crypto
 {
     public class CryptoService : ICryptoService
     {

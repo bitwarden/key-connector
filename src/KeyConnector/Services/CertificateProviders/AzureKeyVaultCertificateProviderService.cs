@@ -5,7 +5,7 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Certificates;
 using Azure.Security.KeyVault.Secrets;
 
-namespace Bit.KeyConnector.Services
+namespace Bit.KeyConnector.Services.CertificateProviders
 {
     public class AzureKeyVaultCertificateProviderService : ICertificateProviderService
     {

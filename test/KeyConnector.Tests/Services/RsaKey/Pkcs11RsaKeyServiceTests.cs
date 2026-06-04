@@ -1,4 +1,7 @@
-using Bit.KeyConnector.Services;
+using Bit.KeyConnector.Services.CertificateProviders;
+using Bit.KeyConnector.Services.Crypto;
+using Bit.KeyConnector.Services.Pkcs11;
+using Bit.KeyConnector.Services.RsaKey;
 using Xunit;
 using NSubstitute;
 using Bit.KeyConnector;
@@ -9,7 +12,6 @@ using System;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using Bit.KeyConnector.Services.Pkcs11;
 using Net.Pkcs11Interop.HighLevelAPI.MechanismParams;
 
 namespace KeyConnector.Tests.Services;

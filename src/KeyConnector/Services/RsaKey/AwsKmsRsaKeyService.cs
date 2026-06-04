@@ -6,7 +6,7 @@ using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
 using Bit.KeyConnector.Exceptions;
 
-namespace Bit.KeyConnector.Services
+namespace Bit.KeyConnector.Services.RsaKey
 {
     public class AwsKmsRsaKeyService : IRsaKeyService
     {
