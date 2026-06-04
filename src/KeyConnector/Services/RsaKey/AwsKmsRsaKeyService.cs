@@ -17,10 +17,12 @@ namespace Bit.KeyConnector.Services.RsaKey
             KeyConnectorSettings settings)
         {
             _settings = settings;
-            if(UseInstanceMetadataForCredentials())
+            if (UseInstanceMetadataForCredentials())
             {
                 _kmsClient = new AmazonKeyManagementServiceClient(RegionEndpoint.GetBySystemName(settings.RsaKey.AwsRegion));
-            } else {
+            }
+            else
+            {
                 _kmsClient = new AmazonKeyManagementServiceClient(settings.RsaKey.AwsAccessKeyId, settings.RsaKey.AwsAccessKeySecret, RegionEndpoint.GetBySystemName(settings.RsaKey.AwsRegion));
             }
         }

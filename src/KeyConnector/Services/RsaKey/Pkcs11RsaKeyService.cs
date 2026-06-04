@@ -184,7 +184,7 @@ namespace Bit.KeyConnector.Services.RsaKey
                         break;
                     }
                 }
-                catch (Pkcs11Exception) {}
+                catch (Pkcs11Exception) { }
             }
 
             if (chosenSlot == null)

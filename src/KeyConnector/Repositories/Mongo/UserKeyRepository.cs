@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections;
 using System.Threading.Tasks;
 using Bit.KeyConnector.Models;
-using JsonFlatFileDataStore;
 using MongoDB.Driver;
 
 namespace Bit.KeyConnector.Repositories.Mongo
