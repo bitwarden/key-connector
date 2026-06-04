@@ -26,6 +26,20 @@ namespace Bit.KeyConnector.Repositories.JsonFile
             await collection.InsertOneAsync(new JsonUserKeyModel(item));
         }
 
+        public override async Task UpdateAsync(UserKeyModel item)
+        {
+            var collection = DataStore.GetCollection<JsonUserKeyModel>(CollectionName);
+            var idString = item.Id.ToString();
+            await collection.ReplaceOneAsync(e => e.Id == idString, new JsonUserKeyModel(item));
+        }
+
+        public override async Task DeleteAsync(Guid id)
+        {
+            var collection = DataStore.GetCollection<JsonUserKeyModel>(CollectionName);
+            var idString = id.ToString();
+            await collection.DeleteOneAsync(e => e.Id == idString);
+        }
+
         // New model is required since JsonFlatFileDataStore doesn't handle Guid id types
         public class JsonUserKeyModel : BaseUserKeyModel
         {
