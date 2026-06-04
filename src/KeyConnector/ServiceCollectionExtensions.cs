@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Security.Claims;
 using Bit.KeyConnector.Repositories;
-using Bit.KeyConnector.Services;
+using Bit.KeyConnector.Services.CertificateProviders;
+using Bit.KeyConnector.Services.Crypto;
 using Bit.KeyConnector.Services.Pkcs11;
+using Bit.KeyConnector.Services.RsaKey;
 using IdentityModel;
 using IdentityServer4.AccessTokenValidation;
 using JsonFlatFileDataStore;
