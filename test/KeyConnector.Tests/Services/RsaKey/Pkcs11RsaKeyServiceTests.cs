@@ -1,18 +1,20 @@
-using Bit.KeyConnector.Services;
-using Xunit;
-using NSubstitute;
-using Bit.KeyConnector;
-using System.Threading.Tasks;
-using Net.Pkcs11Interop.HighLevelAPI;
-using Net.Pkcs11Interop.Common;
-using System;
+﻿using System;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
+using Bit.KeyConnector;
+using Bit.KeyConnector.Services.CertificateProviders;
+using Bit.KeyConnector.Services.Crypto;
 using Bit.KeyConnector.Services.Pkcs11;
+using Bit.KeyConnector.Services.RsaKey;
+using Net.Pkcs11Interop.Common;
+using Net.Pkcs11Interop.HighLevelAPI;
 using Net.Pkcs11Interop.HighLevelAPI.MechanismParams;
+using NSubstitute;
+using Xunit;
 
-namespace KeyConnector.Tests.Services;
+namespace KeyConnector.Tests.Services.RsaKey;
 
 internal delegate void InitializationModifier(
     ICertificateProviderService certificateProviderService,
@@ -39,7 +41,7 @@ public class Pkcs11RsaKeyServiceTests
         return new Pkcs11RsaKeyService(certificateProviderService, cryptoFunctionService, pkcs11InteropFactory,
             settings);
     }
-    
+
     // EncryptAsync Tests
 
     [Fact]
@@ -72,7 +74,7 @@ public class Pkcs11RsaKeyServiceTests
         var sut = InitializeService();
         Assert.Null(await sut.EncryptAsync(null));
     }
-    
+
     // DecryptAsync Tests
 
     [Fact]
@@ -192,7 +194,8 @@ public class Pkcs11RsaKeyServiceTests
         {
             settings.RsaKey = new KeyConnectorSettings.RsaKeySettings
             {
-                Pkcs11Provider = "yubihsm", Pkcs11SlotTokenSerialNumber = "chosenSerialNumber",
+                Pkcs11Provider = "yubihsm",
+                Pkcs11SlotTokenSerialNumber = "chosenSerialNumber",
             };
             interopFactory.LoadPkcs11Library(default, default).ReturnsForAnyArgs(library);
         });
@@ -221,7 +224,8 @@ public class Pkcs11RsaKeyServiceTests
         {
             settings.RsaKey = new KeyConnectorSettings.RsaKeySettings
             {
-                Pkcs11Provider = "yubihsm", Pkcs11SlotTokenSerialNumber = "chosenSerialNumber",
+                Pkcs11Provider = "yubihsm",
+                Pkcs11SlotTokenSerialNumber = "chosenSerialNumber",
             };
             interopFactory.LoadPkcs11Library(default, default).ReturnsForAnyArgs(library);
         });
@@ -325,7 +329,7 @@ public class Pkcs11RsaKeyServiceTests
         var sut = InitializeService();
         Assert.Null(await sut.DecryptAsync(null));
     }
-    
+
     // SignAsync Tests
 
     [Fact]
@@ -437,7 +441,8 @@ public class Pkcs11RsaKeyServiceTests
         {
             settings.RsaKey = new KeyConnectorSettings.RsaKeySettings
             {
-                Pkcs11Provider = "yubihsm", Pkcs11SlotTokenSerialNumber = "chosenSerialNumber",
+                Pkcs11Provider = "yubihsm",
+                Pkcs11SlotTokenSerialNumber = "chosenSerialNumber",
             };
             interopFactory.LoadPkcs11Library(default, default).ReturnsForAnyArgs(library);
         });
@@ -466,7 +471,8 @@ public class Pkcs11RsaKeyServiceTests
         {
             settings.RsaKey = new KeyConnectorSettings.RsaKeySettings
             {
-                Pkcs11Provider = "yubihsm", Pkcs11SlotTokenSerialNumber = "chosenSerialNumber",
+                Pkcs11Provider = "yubihsm",
+                Pkcs11SlotTokenSerialNumber = "chosenSerialNumber",
             };
             interopFactory.LoadPkcs11Library(default, default).ReturnsForAnyArgs(library);
         });

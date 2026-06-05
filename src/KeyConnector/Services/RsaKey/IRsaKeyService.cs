@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Bit.KeyConnector.Services
+namespace Bit.KeyConnector.Services.RsaKey
 {
     public interface IRsaKeyService
     {

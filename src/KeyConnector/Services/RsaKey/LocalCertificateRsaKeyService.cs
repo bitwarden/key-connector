@@ -1,7 +1,9 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Bit.KeyConnector.Services.CertificateProviders;
+using Bit.KeyConnector.Services.Crypto;
 
-namespace Bit.KeyConnector.Services
+namespace Bit.KeyConnector.Services.RsaKey
 {
     public class LocalCertificateRsaKeyService : IRsaKeyService
     {

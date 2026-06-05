@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Bit.KeyConnector.Services.CertificateProviders;
+using Bit.KeyConnector.Services.Crypto;
+using Bit.KeyConnector.Services.Pkcs11;
 using Net.Pkcs11Interop.Common;
 using Net.Pkcs11Interop.HighLevelAPI;
 
-namespace Bit.KeyConnector.Services.Pkcs11
+namespace Bit.KeyConnector.Services.RsaKey
 {
     public class Pkcs11RsaKeyService : IRsaKeyService
     {
@@ -181,7 +184,7 @@ namespace Bit.KeyConnector.Services.Pkcs11
                         break;
                     }
                 }
-                catch (Pkcs11Exception) {}
+                catch (Pkcs11Exception) { }
             }
 
             if (chosenSlot == null)

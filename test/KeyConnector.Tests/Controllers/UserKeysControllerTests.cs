@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Bit.KeyConnector.Controllers;
 using Bit.KeyConnector.Models;
 using Bit.KeyConnector.Repositories;
-using Bit.KeyConnector.Services;
+using Bit.KeyConnector.Services.Crypto;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

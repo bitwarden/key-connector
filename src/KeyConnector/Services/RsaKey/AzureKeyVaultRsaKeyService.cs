@@ -4,7 +4,7 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Keys;
 using Azure.Security.KeyVault.Keys.Cryptography;
 
-namespace Bit.KeyConnector.Services
+namespace Bit.KeyConnector.Services.RsaKey
 {
     public class AzureKeyVaultRsaKeyService : IRsaKeyService
     {
