@@ -6,7 +6,7 @@ using Amazon.KeyManagementService;
 using Amazon.KeyManagementService.Model;
 using Bit.KeyConnector.Exceptions;
 
-namespace Bit.KeyConnector.Services
+namespace Bit.KeyConnector.Services.RsaKey
 {
     public class AwsKmsRsaKeyService : IRsaKeyService
     {
@@ -17,10 +17,12 @@ namespace Bit.KeyConnector.Services
             KeyConnectorSettings settings)
         {
             _settings = settings;
-            if(UseInstanceMetadataForCredentials())
+            if (UseInstanceMetadataForCredentials())
             {
                 _kmsClient = new AmazonKeyManagementServiceClient(RegionEndpoint.GetBySystemName(settings.RsaKey.AwsRegion));
-            } else {
+            }
+            else
+            {
                 _kmsClient = new AmazonKeyManagementServiceClient(settings.RsaKey.AwsAccessKeyId, settings.RsaKey.AwsAccessKeySecret, RegionEndpoint.GetBySystemName(settings.RsaKey.AwsRegion));
             }
         }

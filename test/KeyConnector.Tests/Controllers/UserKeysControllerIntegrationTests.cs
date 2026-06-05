@@ -5,7 +5,7 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Bit.KeyConnector.Models;
 using Bit.KeyConnector.Repositories;
-using Bit.KeyConnector.Services;
+using Bit.KeyConnector.Services.Crypto;
 using KeyConnector.Tests.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;

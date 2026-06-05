@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using VaultSharp;
 using VaultSharp.V1.AuthMethods.Token;
 
-namespace Bit.KeyConnector.Services
+namespace Bit.KeyConnector.Services.CertificateProviders
 {
     public class HashicorpVaultCertificateProviderService : ICertificateProviderService
     {

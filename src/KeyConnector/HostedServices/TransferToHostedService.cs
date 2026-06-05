@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Bit.KeyConnector.Repositories;
-using Bit.KeyConnector.Services;
+using Bit.KeyConnector.Services.Crypto;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

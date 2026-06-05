@@ -1,5 +1,5 @@
 ﻿using System.Globalization;
-using Bit.KeyConnector.Services;
+using Bit.KeyConnector.Services.RsaKey;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
