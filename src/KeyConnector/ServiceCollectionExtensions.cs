@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Bit.KeyConnector.Helpers;
 using Bit.KeyConnector.Models;
 using Bit.KeyConnector.Repositories;
 using Bit.KeyConnector.Services.CertificateProviders;
@@ -161,18 +158,6 @@ namespace Bit.KeyConnector
                     {
                         NameClaimType = JwtClaimTypes.Email,
                         ValidateAudience = false,
-                    };
-                    options.Events = new JwtBearerEvents
-                    {
-                        OnTokenValidated = context =>
-                        {
-                            if (context.Principal?.Identity is ClaimsIdentity identity)
-                            {
-                                ScopeClaimNormalizer.Normalize(identity);
-                            }
-
-                            return Task.CompletedTask;
-                        }
                     };
                 });
 
