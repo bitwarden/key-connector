@@ -156,9 +156,10 @@ namespace Bit.KeyConnector
                     options.Authority = settings.IdentityServerUri;
                     options.RequireHttpsMetadata = !environment.IsDevelopment() &&
                         settings.IdentityServerUri.StartsWith("https");
+                    options.MapInboundClaims = false;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        NameClaimType = ClaimTypes.Email,
+                        NameClaimType = JwtClaimTypes.Email,
                         ValidateAudience = false,
                     };
                     options.Events = new JwtBearerEvents
