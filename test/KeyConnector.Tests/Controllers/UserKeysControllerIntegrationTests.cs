@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Bit.KeyConnector.Models;
@@ -136,13 +137,16 @@ public class UserKeysControllerIntegrationTests : IClassFixture<KeyConnectorWebA
         Assert.InRange(stored.RevisionDate.Value, beforePut, DateTime.UtcNow);
     }
 
-    private static string GenerateBase64Key(string label) =>
-        Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(label));
+    private static string GenerateBase64Key(string label)
+    {
+        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(label));
+    }
 
     private HttpRequestMessage CreateRequest(HttpMethod method, Guid userId, object body = null)
     {
         var request = new HttpRequestMessage(method, "/user-keys");
-        request.Headers.Add(TestAuthHandler.TestUserIdHeader, userId.ToString());
+        request.Headers.Authorization =
+            new AuthenticationHeaderValue("Bearer", JwtTestHelper.CreateToken(userId));
         if (body != null)
         {
             request.Content = JsonContent.Create(body);
