@@ -14,7 +14,7 @@ namespace Bit.KeyConnector.Services.CertificateProviders
 
         public Task<X509Certificate2> GetCertificateAsync()
         {
-            var cert = new X509Certificate2(_settings.Certificate.FilesystemPath,
+            var cert = X509CertificateLoader.LoadPkcs12FromFile(_settings.Certificate.FilesystemPath,
                 _settings.Certificate.FilesystemPassword);
             return Task.FromResult(cert);
         }

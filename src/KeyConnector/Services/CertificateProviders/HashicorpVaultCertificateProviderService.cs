@@ -33,7 +33,7 @@ namespace Bit.KeyConnector.Services.CertificateProviders
             if (secret?.Data?.Data?.ContainsKey(_settings.Certificate.VaultSecretDataKey) ?? false)
             {
                 var certData = secret.Data.Data[_settings.Certificate.VaultSecretDataKey] as string;
-                return new X509Certificate2(Convert.FromBase64String(certData),
+                return X509CertificateLoader.LoadPkcs12(Convert.FromBase64String(certData),
                     _settings.Certificate.VaultSecretFilePassword);
             }
             else

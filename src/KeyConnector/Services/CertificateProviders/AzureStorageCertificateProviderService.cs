@@ -24,7 +24,7 @@ namespace Bit.KeyConnector.Services.CertificateProviders
             {
                 using var stream = new MemoryStream();
                 await blobClient.DownloadToAsync(stream);
-                return new X509Certificate2(stream.ToArray(), _settings.Certificate.AzureStorageFilePassword);
+                return X509CertificateLoader.LoadPkcs12(stream.ToArray(), _settings.Certificate.AzureStorageFilePassword);
             }
             return null;
         }
