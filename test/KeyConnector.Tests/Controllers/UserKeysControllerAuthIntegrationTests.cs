@@ -48,7 +48,8 @@ public class UserKeysControllerAuthIntegrationTests : IClassFixture<KeyConnector
     [Fact]
     public async Task Get_ReturnsUnauthorized_WhenTokenSignedWithDifferentKey()
     {
-        var foreignKey = new RsaSecurityKey(RSA.Create(2048)) { KeyId = "foreign-key" };
+        using var rsa = RSA.Create(2048);
+        var foreignKey = new RsaSecurityKey(rsa) { KeyId = "foreign-key" };
         var token = JwtTestHelper.CreateToken(new JwtTokenOptions
         {
             SigningCredentials = new SigningCredentials(foreignKey, SecurityAlgorithms.RsaSha256),
@@ -220,7 +221,7 @@ public class UserKeysControllerAuthIntegrationTests : IClassFixture<KeyConnector
 
     private async Task<HttpResponseMessage> SendGetAsync(AuthenticationHeaderValue authorization)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, "/user-keys");
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/user-keys");
         request.Headers.Authorization = authorization;
         return await _client.SendAsync(request);
     }
