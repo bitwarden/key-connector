@@ -6,15 +6,6 @@ using Xunit;
 
 namespace KeyConnector.Tests.Repositories;
 
-public static class ContainerImages
-{
-    public const string SqlServer = "mcr.microsoft.com/mssql/server:2022-latest";
-    public const string PostgreSql = "postgres:14";
-    public const string MySql = "mysql:8";
-    public const string MariaDb = "mariadb:10";
-    public const string Mongo = "mongo:7";
-}
-
 public interface IUserKeyRepositoryFixture : IAsyncLifetime
 {
     IUserKeyRepository Repository { get; }
@@ -23,11 +14,11 @@ public interface IUserKeyRepositoryFixture : IAsyncLifetime
 public abstract class UserKeyRepositoryTestBase<TFixture> : IClassFixture<TFixture>
     where TFixture : class, IUserKeyRepositoryFixture
 {
-    protected readonly IUserKeyRepository Repository;
+    private readonly IUserKeyRepository _repository;
 
     protected UserKeyRepositoryTestBase(TFixture fixture)
     {
-        Repository = fixture.Repository;
+        _repository = fixture.Repository;
     }
 
     [Fact]
@@ -42,8 +33,8 @@ public abstract class UserKeyRepositoryTestBase<TFixture> : IClassFixture<TFixtu
             CreationDate = creationDate
         };
 
-        await Repository.CreateAsync(item);
-        var result = await Repository.ReadAsync(userId);
+        await _repository.CreateAsync(item);
+        var result = await _repository.ReadAsync(userId);
 
         Assert.NotNull(result);
         Assert.Equal(userId, result.Id);
@@ -56,7 +47,7 @@ public abstract class UserKeyRepositoryTestBase<TFixture> : IClassFixture<TFixtu
     [Fact]
     public async Task ReadAsync_ReturnsNull_WhenItemDoesNotExist()
     {
-        var result = await Repository.ReadAsync(Guid.NewGuid());
+        var result = await _repository.ReadAsync(Guid.NewGuid());
 
         Assert.Null(result);
     }
@@ -66,15 +57,15 @@ public abstract class UserKeyRepositoryTestBase<TFixture> : IClassFixture<TFixtu
     {
         var userId = Guid.NewGuid();
         var item = new UserKeyModel { Id = userId, Key = "original-key" };
-        await Repository.CreateAsync(item);
+        await _repository.CreateAsync(item);
 
-        var stored = await Repository.ReadAsync(userId);
+        var stored = await _repository.ReadAsync(userId);
         stored.Key = "updated-key";
         var revisionDate = TruncateToMilliseconds(DateTime.UtcNow.AddDays(-1));
         stored.RevisionDate = revisionDate;
-        await Repository.UpdateAsync(stored);
+        await _repository.UpdateAsync(stored);
 
-        var result = await Repository.ReadAsync(userId);
+        var result = await _repository.ReadAsync(userId);
         Assert.Equal("updated-key", result.Key);
         Assert.Equal(revisionDate, result.RevisionDate);
     }
@@ -84,11 +75,11 @@ public abstract class UserKeyRepositoryTestBase<TFixture> : IClassFixture<TFixtu
     {
         var userId = Guid.NewGuid();
         var item = new UserKeyModel { Id = userId, Key = "test-key" };
-        await Repository.CreateAsync(item);
+        await _repository.CreateAsync(item);
 
-        await Repository.DeleteAsync(userId);
+        await _repository.DeleteAsync(userId);
 
-        var result = await Repository.ReadAsync(userId);
+        var result = await _repository.ReadAsync(userId);
         Assert.Null(result);
     }
 
@@ -97,10 +88,10 @@ public abstract class UserKeyRepositoryTestBase<TFixture> : IClassFixture<TFixtu
     {
         var item1 = new UserKeyModel { Id = Guid.NewGuid(), Key = "key-1" };
         var item2 = new UserKeyModel { Id = Guid.NewGuid(), Key = "key-2" };
-        await Repository.CreateAsync(item1);
-        await Repository.CreateAsync(item2);
+        await _repository.CreateAsync(item1);
+        await _repository.CreateAsync(item2);
 
-        var results = await Repository.ReadAllAsync();
+        var results = await _repository.ReadAllAsync();
 
         Assert.True(results.Count >= 2);
         Assert.Contains(results, r => r.Id == item1.Id);

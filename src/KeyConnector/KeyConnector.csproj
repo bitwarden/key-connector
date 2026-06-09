@@ -16,17 +16,17 @@
     <PackageReference Include="Google.Cloud.Kms.V1" Version="[3.7.0]"/>
     <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="[3.0.1]"/>
     <PackageReference Include="JsonFlatFileDataStore" Version="[2.4.2]"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="[8.0.11]">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="[8.0.27]">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="[8.0.11]"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="[8.0.2]"/>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="[8.0.2]"/>
-    <PackageReference Include="MongoDB.Driver" Version="[2.22.0]"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="[8.0.27]"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="[8.0.27]"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="[8.0.27]"/>
+    <PackageReference Include="MongoDB.EntityFrameworkCore" Version="[8.4.1]"/>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="[8.0.11]"/>
     <PackageReference Include="Pkcs11Interop" Version="[5.1.2]"/>
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="[8.0.1]"/>
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="[8.0.3]"/>
     <PackageReference Include="Serilog.AspNetCore" Version="[8.0.1]"/>
     <PackageReference Include="Serilog.Settings.Configuration" Version="[8.0.0]"/>
     <PackageReference Include="Serilog.Sinks.Console" Version="[5.0.1]"/>

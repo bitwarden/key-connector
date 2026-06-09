@@ -97,8 +97,11 @@ namespace Bit.KeyConnector
             }
             else if (databaseProvider == "mongo")
             {
-                services.AddSingleton<IApplicationDataRepository, Repositories.Mongo.ApplicationDataRepository>();
-                services.AddSingleton<IUserKeyRepository, Repositories.Mongo.UserKeyRepository>();
+                services.AddDbContext<Repositories.EntityFramework.DatabaseContext,
+                    Repositories.EntityFramework.MongoDbDatabaseContext>();
+                services.AddSingleton<IApplicationDataRepository,
+                    Repositories.EntityFramework.ApplicationDataRepository>();
+                services.AddSingleton<IUserKeyRepository, Repositories.EntityFramework.UserKeyRepository>();
             }
             else if (efDatabaseProvider)
             {
