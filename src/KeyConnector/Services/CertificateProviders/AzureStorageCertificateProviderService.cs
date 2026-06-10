@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using System.Threading.Tasks;
 using Bit.KeyConnector.Services.ClientFactories;
 
@@ -27,7 +28,7 @@ namespace Bit.KeyConnector.Services.CertificateProviders
             if (await blobClient.ExistsAsync())
             {
                 using var stream = new MemoryStream();
-                await blobClient.DownloadToAsync(stream);
+                await blobClient.DownloadToAsync(stream, CancellationToken.None);
                 return new X509Certificate2(stream.ToArray(), _settings.Certificate.AzureStorageFilePassword);
             }
             return null;

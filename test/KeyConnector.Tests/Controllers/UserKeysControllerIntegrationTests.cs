@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Bit.KeyConnector.Models;
@@ -14,6 +15,9 @@ namespace KeyConnector.Tests.Controllers;
 
 public class UserKeysControllerIntegrationTests : IClassFixture<KeyConnectorWebApplicationFactory>
 {
+    private const string _testKey = "dGVzdC1rZXktY29ubmVjdG9yLWtleQo=";
+    private const string _testUpdatedKey = "dGVzdC11cGRhdGVkLWtleS1jb25uZWN0b3Ita2V5Cg==";
+
     private readonly HttpClient _client;
     private readonly IUserKeyRepository _userKeyRepository;
     private readonly ICryptoService _cryptoService;
@@ -40,8 +44,7 @@ public class UserKeysControllerIntegrationTests : IClassFixture<KeyConnectorWebA
     public async Task Get_ReturnsDecryptedKey_WhenUserExistsInDatabase()
     {
         var userId = Guid.NewGuid();
-        var plainKey = GenerateBase64Key("direct-insert-key");
-        var encryptedKey = await _cryptoService.AesEncryptToB64Async(plainKey);
+        var encryptedKey = await _cryptoService.AesEncryptToB64Async(_testKey);
         await _userKeyRepository.CreateAsync(new UserKeyModel { Id = userId, Key = encryptedKey });
 
         var request = CreateRequest(HttpMethod.Get, userId);
@@ -49,17 +52,16 @@ public class UserKeysControllerIntegrationTests : IClassFixture<KeyConnectorWebA
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<UserKeyResponseModel>(TestContext.Current.CancellationToken);
-        Assert.Equal(plainKey, result.Key);
+        Assert.Equal(_testKey, result.Key);
     }
 
     [Fact]
     public async Task Post_ThenGet_RoundTripsKey()
     {
         var userId = Guid.NewGuid();
-        var key = GenerateBase64Key("test-key-value");
         var beforePost = DateTime.UtcNow;
 
-        var postRequest = CreateRequest(HttpMethod.Post, userId, new { Key = key });
+        var postRequest = CreateRequest(HttpMethod.Post, userId, new { Key = _testKey });
         var postResponse = await _client.SendAsync(postRequest, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
 
@@ -68,7 +70,7 @@ public class UserKeysControllerIntegrationTests : IClassFixture<KeyConnectorWebA
         Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
         var result = await getResponse.Content.ReadFromJsonAsync<UserKeyResponseModel>(TestContext.Current.CancellationToken);
-        Assert.Equal(key, result.Key);
+        Assert.Equal(_testKey, result.Key);
 
         var stored = await _userKeyRepository.ReadAsync(userId);
         Assert.InRange(stored.CreationDate, beforePost, DateTime.UtcNow);
@@ -79,10 +81,10 @@ public class UserKeysControllerIntegrationTests : IClassFixture<KeyConnectorWebA
     {
         var userId = Guid.NewGuid();
 
-        var postRequest = CreateRequest(HttpMethod.Post, userId, new { Key = GenerateBase64Key("key1") });
+        var postRequest = CreateRequest(HttpMethod.Post, userId, new { Key = _testKey });
         await _client.SendAsync(postRequest, TestContext.Current.CancellationToken);
 
-        var duplicateRequest = CreateRequest(HttpMethod.Post, userId, new { Key = GenerateBase64Key("key2") });
+        var duplicateRequest = CreateRequest(HttpMethod.Post, userId, new { Key = _testKey });
         var response = await _client.SendAsync(duplicateRequest, TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -92,10 +94,9 @@ public class UserKeysControllerIntegrationTests : IClassFixture<KeyConnectorWebA
     public async Task Put_CreatesUser_WhenUserDoesNotExist()
     {
         var userId = Guid.NewGuid();
-        var key = GenerateBase64Key("put-create-key");
         var beforePut = DateTime.UtcNow;
 
-        var putRequest = CreateRequest(HttpMethod.Put, userId, new { Key = key });
+        var putRequest = CreateRequest(HttpMethod.Put, userId, new { Key = _testKey });
         var putResponse = await _client.SendAsync(putRequest, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, putResponse.StatusCode);
 
@@ -104,7 +105,7 @@ public class UserKeysControllerIntegrationTests : IClassFixture<KeyConnectorWebA
         Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
         var result = await getResponse.Content.ReadFromJsonAsync<UserKeyResponseModel>(TestContext.Current.CancellationToken);
-        Assert.Equal(key, result.Key);
+        Assert.Equal(_testKey, result.Key);
 
         var stored = await _userKeyRepository.ReadAsync(userId);
         Assert.InRange(stored.CreationDate, beforePut, DateTime.UtcNow);
@@ -115,34 +116,29 @@ public class UserKeysControllerIntegrationTests : IClassFixture<KeyConnectorWebA
     {
         var userId = Guid.NewGuid();
 
-        var originalKey = GenerateBase64Key("original-key");
-        var updatedKey = GenerateBase64Key("updated-key");
-
-        var postRequest = CreateRequest(HttpMethod.Post, userId, new { Key = originalKey });
+        var postRequest = CreateRequest(HttpMethod.Post, userId, new { Key = _testKey });
         await _client.SendAsync(postRequest, TestContext.Current.CancellationToken);
 
         var beforePut = DateTime.UtcNow;
-        var putRequest = CreateRequest(HttpMethod.Put, userId, new { Key = updatedKey });
+        var putRequest = CreateRequest(HttpMethod.Put, userId, new { Key = _testUpdatedKey });
         var putResponse = await _client.SendAsync(putRequest, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, putResponse.StatusCode);
 
         var getRequest = CreateRequest(HttpMethod.Get, userId);
         var getResponse = await _client.SendAsync(getRequest, TestContext.Current.CancellationToken);
         var result = await getResponse.Content.ReadFromJsonAsync<UserKeyResponseModel>(TestContext.Current.CancellationToken);
-        Assert.Equal(updatedKey, result.Key);
+        Assert.Equal(_testUpdatedKey, result.Key);
 
         var stored = await _userKeyRepository.ReadAsync(userId);
         Assert.NotNull(stored.RevisionDate);
         Assert.InRange(stored.RevisionDate.Value, beforePut, DateTime.UtcNow);
     }
 
-    private static string GenerateBase64Key(string label) =>
-        Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(label));
-
     private HttpRequestMessage CreateRequest(HttpMethod method, Guid userId, object body = null)
     {
         var request = new HttpRequestMessage(method, "/user-keys");
-        request.Headers.Add(TestAuthHandler.TestUserIdHeader, userId.ToString());
+        request.Headers.Authorization =
+            new AuthenticationHeaderValue("Bearer", JwtTestHelper.CreateToken(userId));
         if (body != null)
         {
             request.Content = JsonContent.Create(body);

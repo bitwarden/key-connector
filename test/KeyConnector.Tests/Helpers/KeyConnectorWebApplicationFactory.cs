@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Bit.KeyConnector;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace KeyConnector.Tests.Helpers;
 
@@ -58,10 +59,22 @@ public class KeyConnectorWebApplicationFactory : WebApplicationFactory<Startup>
         {
             services.AddAuthentication(options =>
                 {
-                    options.DefaultAuthenticateScheme = "TestScheme";
-                    options.DefaultChallengeScheme = "TestScheme";
+                    options.DefaultScheme = JwtTestHelper.AuthenticationScheme;
+                    options.DefaultAuthenticateScheme = JwtTestHelper.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtTestHelper.AuthenticationScheme;
                 })
-                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("TestScheme", _ => { });
+                .AddJwtBearer(JwtTestHelper.AuthenticationScheme, options =>
+                {
+                    options.Authority = JwtTestHelper.TestIssuer;
+                    options.RequireHttpsMetadata = false;
+                    options.BackchannelHttpHandler = JwtTestHelper.CreateDiscoveryHandler();
+                    options.MapInboundClaims = false;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        NameClaimType = ClaimTypes.Email,
+                        ValidateAudience = false,
+                    };
+                });
         });
     }
 
