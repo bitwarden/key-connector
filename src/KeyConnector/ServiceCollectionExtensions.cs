@@ -2,6 +2,7 @@
 using Bit.KeyConnector.Models;
 using Bit.KeyConnector.Repositories;
 using Bit.KeyConnector.Services.CertificateProviders;
+using Bit.KeyConnector.Services.ClientFactories;
 using Bit.KeyConnector.Services.Crypto;
 using Bit.KeyConnector.Services.Pkcs11;
 using Bit.KeyConnector.Services.RsaKey;
@@ -38,6 +39,7 @@ namespace Bit.KeyConnector
                 if (certificateProvider == "store")
                 {
                     services.AddSingleton<ICertificateProviderService, StoreCertificateProviderService>();
+                    services.AddSingleton<IX509StoreFactory, X509StoreFactory>();
                 }
                 else if (certificateProvider == "filesystem")
                 {
@@ -46,14 +48,17 @@ namespace Bit.KeyConnector
                 else if (certificateProvider == "azurestorage")
                 {
                     services.AddSingleton<ICertificateProviderService, AzureStorageCertificateProviderService>();
+                    services.AddSingleton<IAzureBlobClientFactory, AzureBlobClientFactory>();
                 }
                 else if (certificateProvider == "azurekv")
                 {
                     services.AddSingleton<ICertificateProviderService, AzureKeyVaultCertificateProviderService>();
+                    services.AddSingleton<IAzureKeyVaultClientFactory, AzureKeyVaultClientFactory>();
                 }
                 else if (certificateProvider == "vault")
                 {
                     services.AddSingleton<ICertificateProviderService, HashicorpVaultCertificateProviderService>();
+                    services.AddSingleton<IHashicorpVaultClientFactory, HashicorpVaultClientFactory>();
                 }
                 else
                 {
