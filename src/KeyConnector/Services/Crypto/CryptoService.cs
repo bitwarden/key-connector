@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Bit.KeyConnector.Repositories;
 using Bit.KeyConnector.Services.RsaKey;
+using Microsoft.Extensions.Logging;
 
 namespace Bit.KeyConnector.Services.Crypto
 {
@@ -10,17 +11,20 @@ namespace Bit.KeyConnector.Services.Crypto
         private readonly IRsaKeyService _rsaKeyService;
         private readonly ICryptoFunctionService _cryptoFunctionService;
         private readonly IApplicationDataRepository _applicationDataRepository;
+        private readonly ILogger<CryptoService> _logger;
 
         private byte[] _symmetricKey;
 
         public CryptoService(
             IRsaKeyService rsaKeyService,
             ICryptoFunctionService cryptoFunctionService,
-            IApplicationDataRepository applicationDataRepository)
+            IApplicationDataRepository applicationDataRepository,
+            ILogger<CryptoService> logger)
         {
             _rsaKeyService = rsaKeyService;
             _cryptoFunctionService = cryptoFunctionService;
             _applicationDataRepository = applicationDataRepository;
+            _logger = logger;
         }
 
         // AES Decrypt
@@ -103,11 +107,13 @@ namespace Bit.KeyConnector.Services.Crypto
                 var encKey = await _applicationDataRepository.ReadSymmetricKeyAsync();
                 if (encKey != null)
                 {
+                    _logger.LogDebug("Found a stored encrypted symmetric key; decrypting it with the RSA key.");
                     var decodedEncKey = Convert.FromBase64String(encKey);
                     _symmetricKey = await RsaDecryptAsync(decodedEncKey);
                 }
                 else
                 {
+                    _logger.LogDebug("No stored symmetric key found; generating a new one and saving it to the repository.");
                     var newSymmetricKey = await _cryptoFunctionService.GetRandomBytesAsync(32);
                     var decodedEncKey = await RsaEncryptAsync(newSymmetricKey);
 
@@ -122,6 +128,10 @@ namespace Bit.KeyConnector.Services.Crypto
                     // Only save in memory after successfully saving to database
                     _symmetricKey = newSymmetricKey;
                 }
+            }
+            else
+            {
+                _logger.LogDebug("Using the symmetric key already cached in memory.");
             }
 
             return _symmetricKey;
