@@ -161,7 +161,7 @@ public class UserKeysControllerAuthIntegrationTests : IClassFixture<KeyConnector
         var response = await SendGetWithToken(JwtTestHelper.CreateToken(userId));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<UserKeyResponseModel>();
+        var result = await response.Content.ReadFromJsonAsync<UserKeyResponseModel>(TestContext.Current.CancellationToken);
         Assert.Equal(plainKey, result.Key);
     }
 
@@ -180,7 +180,7 @@ public class UserKeysControllerAuthIntegrationTests : IClassFixture<KeyConnector
         var response = await SendGetWithToken(token);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<UserKeyResponseModel>();
+        var result = await response.Content.ReadFromJsonAsync<UserKeyResponseModel>(TestContext.Current.CancellationToken);
         Assert.Equal(plainKey, result.Key);
     }
 
@@ -199,7 +199,7 @@ public class UserKeysControllerAuthIntegrationTests : IClassFixture<KeyConnector
         var response = await SendGetWithToken(token);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<UserKeyResponseModel>();
+        var result = await response.Content.ReadFromJsonAsync<UserKeyResponseModel>(TestContext.Current.CancellationToken);
         Assert.Equal(plainKey, result.Key);
     }
 

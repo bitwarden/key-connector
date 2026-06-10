@@ -43,7 +43,7 @@ public class AzureStorageCertificateProviderServiceTests
     {
         _blobClient.ExistsAsync(Arg.Any<CancellationToken>())
             .Returns(Response.FromValue(true, Substitute.For<Response>()));
-        _blobClient.DownloadToAsync(Arg.Any<Stream>())
+        _blobClient.DownloadToAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>())
             .Returns(callInfo =>
             {
                 callInfo.Arg<Stream>().Write(TestCertificateData.PfxBytes);
@@ -59,9 +59,9 @@ public class AzureStorageCertificateProviderServiceTests
         Assert.NotNull(cert.GetRSAPrivateKey());
         _blobClientFactory.Received(1).CreateBlobContainerClient(
             "DefaultEndpointsProtocol=https;AccountName=test", "certs");
-        await _containerClient.Received(1).CreateIfNotExistsAsync();
+        await _containerClient.Received(1).CreateIfNotExistsAsync(cancellationToken: Arg.Any<CancellationToken>());
         _containerClient.Received(1).GetBlobClient("cert.pfx");
-        await _blobClient.Received(1).DownloadToAsync(Arg.Any<Stream>());
+        await _blobClient.Received(1).DownloadToAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -74,6 +74,6 @@ public class AzureStorageCertificateProviderServiceTests
         var cert = await sut.GetCertificateAsync();
 
         Assert.Null(cert);
-        await _containerClient.Received(1).CreateIfNotExistsAsync();
+        await _containerClient.Received(1).CreateIfNotExistsAsync(cancellationToken: Arg.Any<CancellationToken>());
     }
 }
