@@ -16,7 +16,7 @@ public class StoreCertificateProviderServiceTests
     [Fact]
     public async Task GetCertificateAsync_ReturnsCertificate_WhenThumbprintExists()
     {
-        var cert = new X509Certificate2(TestCertificateData.PfxBytes, TestCertificateData.Password);
+        var cert = X509CertificateLoader.LoadPkcs12(TestCertificateData.PfxBytes, TestCertificateData.Password);
         var collection = new X509Certificate2Collection(cert);
         _storeFactory.FindByThumbprint(cert.Thumbprint).Returns(collection);
         var sut = new StoreCertificateProviderService(
