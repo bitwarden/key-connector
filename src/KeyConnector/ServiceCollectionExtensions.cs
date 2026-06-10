@@ -1,19 +1,18 @@
 ﻿using System;
-using System.Security.Claims;
+using Bit.KeyConnector.Models;
 using Bit.KeyConnector.Repositories;
 using Bit.KeyConnector.Services.CertificateProviders;
 using Bit.KeyConnector.Services.ClientFactories;
 using Bit.KeyConnector.Services.Crypto;
 using Bit.KeyConnector.Services.Pkcs11;
 using Bit.KeyConnector.Services.RsaKey;
-using IdentityModel;
-using IdentityServer4.AccessTokenValidation;
 using JsonFlatFileDataStore;
-using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Bit.KeyConnector
 {
@@ -153,14 +152,18 @@ namespace Bit.KeyConnector
                 };
             });
             services
-                .AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
-                .AddIdentityServerAuthentication(options =>
+                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
                 {
                     options.Authority = settings.IdentityServerUri;
                     options.RequireHttpsMetadata = !environment.IsDevelopment() &&
                         settings.IdentityServerUri.StartsWith("https");
-                    options.NameClaimType = ClaimTypes.Email;
-                    options.SupportedTokens = SupportedTokens.Jwt;
+                    options.MapInboundClaims = false;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        NameClaimType = JwtClaimTypes.Email,
+                        ValidateAudience = false,
+                    };
                 });
 
             services
