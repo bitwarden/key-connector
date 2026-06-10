@@ -35,15 +35,16 @@ public class MongoApplicationDataRepositoryTests : ApplicationDataRepositoryTest
     public MongoApplicationDataRepositoryTests(MongoFixture fixture) : base(fixture) { }
 
     [Fact]
-    public async Task ReadSymmetricKeyAsync_ReadsLegacyObjectIdDocument_AndUpdatesInPlace()
+    public async Task LegacyObjectIdApplicationData_IsReadableAndUpdatableAfterMigration()
     {
-        var legacyId = ObjectId.GenerateNewId();
         var collection = Fixture.GetCollection("ApplicationData");
         await collection.InsertOneAsync(new BsonDocument
         {
-            { "_id", legacyId },
+            { "_id", ObjectId.GenerateNewId() },
             { "SymmetricKey", "legacy-symmetric-key" }
         });
+
+        await Fixture.RunDataMigrationAsync();
 
         var read = await Repository.ReadSymmetricKeyAsync();
         Assert.Equal("legacy-symmetric-key", read);
@@ -53,9 +54,9 @@ public class MongoApplicationDataRepositoryTests : ApplicationDataRepositoryTest
         var updated = await Repository.ReadSymmetricKeyAsync();
         Assert.Equal("rotated-key", updated);
 
-        // The update must reuse the existing _id in place, not regenerate it.
+        // The migration replaced the ObjectId id with the int the entity uses, leaving a single document.
         var documents = await collection.Find(new BsonDocument()).ToListAsync();
         var document = Assert.Single(documents);
-        Assert.Equal(legacyId, document["_id"].AsObjectId);
+        Assert.Equal(0, document["_id"].AsInt32);
     }
 }

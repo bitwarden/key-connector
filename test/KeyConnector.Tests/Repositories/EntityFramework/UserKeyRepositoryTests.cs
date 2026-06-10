@@ -45,19 +45,21 @@ public class MongoUserKeyBackwardCompatibilityTests : IClassFixture<MongoFixture
     }
 
     [Fact]
-    public async Task ReadAsync_ReadsUserKeyWrittenDirectlyToCollection()
+    public async Task LegacyUserKey_IsReadableAfterMigration()
     {
         var id = Guid.NewGuid();
         var creationDate = new DateTime(2024, 1, 2, 3, 4, 5, 678, DateTimeKind.Utc);
         var collection = _fixture.GetCollection("UserKey");
         await collection.InsertOneAsync(new BsonDocument
         {
-            { "_id", new BsonBinaryData(id, GuidRepresentation.Standard) },
+            { "_id", new BsonBinaryData(id, GuidRepresentation.CSharpLegacy) },
             { "Key", "legacy-key" },
             { "CreationDate", creationDate },
             { "RevisionDate", BsonNull.Value },
             { "LastAccessDate", BsonNull.Value }
         });
+
+        await _fixture.RunDataMigrationAsync();
 
         var result = await _fixture.Repository.ReadAsync(id);
 

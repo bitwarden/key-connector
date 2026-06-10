@@ -1,8 +1,5 @@
 ﻿using Bit.KeyConnector.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.ValueGeneration;
-using MongoDB.Bson;
 using MongoDB.EntityFrameworkCore.Extensions;
 
 namespace Bit.KeyConnector.Repositories.EntityFramework
@@ -84,32 +81,7 @@ namespace Bit.KeyConnector.Repositories.EntityFramework
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<UserKey>().ToCollection("UserKey");
-
-            modelBuilder.Entity<ApplicationData>(builder =>
-            {
-                builder.ToCollection("ApplicationData");
-                // Historically, ApplicationData's primary key (_id) was an ObjectId, but the ApplicationData entity
-                // that every EF provider reuses has an int Id instead.
-                // To read that existing data without migrating it, ignore the int Id and use an ObjectId _id key that
-                // lives only in the EF model (not as a property on the class).
-                // We generate that key value ourselves because the provider does not create it automatically.
-                builder.Ignore(a => a.Id);
-                builder.Property<ObjectId>("_id").HasValueGenerator<ObjectIdGenerator>();
-                builder.HasKey("_id");
-            });
-        }
-
-        private class ObjectIdGenerator : ValueGenerator<ObjectId>
-        {
-            public override bool GeneratesTemporaryValues
-            {
-                get { return false; }
-            }
-
-            public override ObjectId Next(EntityEntry entry)
-            {
-                return ObjectId.GenerateNewId();
-            }
+            modelBuilder.Entity<ApplicationData>().ToCollection("ApplicationData");
         }
     }
 

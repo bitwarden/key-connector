@@ -102,6 +102,7 @@ namespace Bit.KeyConnector
                 services.AddSingleton<IApplicationDataRepository,
                     Repositories.EntityFramework.ApplicationDataRepository>();
                 services.AddSingleton<IUserKeyRepository, Repositories.EntityFramework.UserKeyRepository>();
+                services.AddHostedService<HostedServices.MongoDataMigrationHostedService>();
             }
             else if (efDatabaseProvider)
             {

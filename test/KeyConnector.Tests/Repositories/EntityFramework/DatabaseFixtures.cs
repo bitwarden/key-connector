@@ -1,12 +1,15 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Bit.KeyConnector;
+using Bit.KeyConnector.HostedServices;
 using Bit.KeyConnector.Repositories;
 using Bit.KeyConnector.Repositories.EntityFramework;
 using DotNet.Testcontainers.Containers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Testcontainers.MariaDb;
@@ -198,5 +201,13 @@ public class MongoFixture : EfContainerFixtureBase<MongoDbContainer>
         return new MongoClient(Container.GetConnectionString())
             .GetDatabase(DatabaseName)
             .GetCollection<BsonDocument>(name);
+    }
+
+    public async Task RunDataMigrationAsync()
+    {
+        var settings = new KeyConnectorSettings { Database = CreateDatabaseSettings() };
+        var service = new MongoDataMigrationHostedService(
+            settings, NullLogger<MongoDataMigrationHostedService>.Instance);
+        await service.StartAsync(CancellationToken.None);
     }
 }
