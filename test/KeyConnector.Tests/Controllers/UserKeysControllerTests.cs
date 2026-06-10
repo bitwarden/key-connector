@@ -18,7 +18,7 @@ namespace KeyConnector.Tests.Controllers;
 public class UserKeysControllerTests
 {
     private const string _testEncryptedKey = "frh60OqIdxUDSsGS8WcUkXTb55GY8nlhrobPed4HYCFWAXcMbhlltszwejoTyT7yWcqhOzLIRtSS1HJv";
-    private const string _testUpdatedEncryptedKey = "frh60OqIdxUDSsGS8WcUkXTb55GY8nlhrobPed4HYCFWAXcMbhlltszwejoTyT7yWcqhOzLIRtSS1HJv";
+    private const string _testUpdatedEncryptedKey = "JrxB/Ey2JZyq53jOdaKTysGi1LvCgkwjCjPnrUMLrPSHPimcrfGEw943Nc1O5qaNxBbn1BgI2OfKhj0O";
     private const string _testKey = "dGVzdC1rZXktY29ubmVjdG9yLWtleQo=";
     private const string _testUpdatedKey = "dGVzdC11cGRhdGVkLWtleS1jb25uZWN0b3Ita2V5Cg==";
 
