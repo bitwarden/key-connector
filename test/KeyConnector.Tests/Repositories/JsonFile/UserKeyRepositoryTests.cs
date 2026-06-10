@@ -14,24 +14,24 @@ public class JsonFileFixture : IUserKeyRepositoryFixture
 
     public IUserKeyRepository Repository { get; private set; }
 
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
         _tempDir = Path.Combine(Path.GetTempPath(), $"kc-json-test-{Guid.NewGuid()}");
         Directory.CreateDirectory(_tempDir);
         var dbPath = Path.Combine(_tempDir, "database.json");
         _dataStore = new DataStore(dbPath, keyProperty: "--foobar--");
         Repository = new UserKeyRepository(_dataStore);
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         _dataStore?.Dispose();
         if (Directory.Exists(_tempDir))
         {
             Directory.Delete(_tempDir, true);
         }
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }
 
