@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using Bit.KeyConnector.Models;
 using Bit.KeyConnector.Repositories;
@@ -18,6 +17,8 @@ namespace KeyConnector.Tests.Controllers;
 
 public class UserKeysControllerAuthIntegrationTests : IClassFixture<KeyConnectorWebApplicationFactory>
 {
+    private const string _testKey = "dGVzdC1rZXktY29ubmVjdG9yLWtleQo=";
+
     private readonly HttpClient _client;
     private readonly IUserKeyRepository _userKeyRepository;
     private readonly ICryptoService _cryptoService;
@@ -155,22 +156,20 @@ public class UserKeysControllerAuthIntegrationTests : IClassFixture<KeyConnector
     public async Task Get_ReturnsKey_WhenTokenIsValid()
     {
         var userId = Guid.NewGuid();
-        var plainKey = GenerateBase64Key("auth-valid-key");
-        await SeedUserAsync(userId, plainKey);
+        await SeedUserAsync(userId, _testKey);
 
         var response = await SendGetWithToken(JwtTestHelper.CreateToken(userId));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<UserKeyResponseModel>(TestContext.Current.CancellationToken);
-        Assert.Equal(plainKey, result.Key);
+        Assert.Equal(_testKey, result.Key);
     }
 
     [Fact]
     public async Task Get_ReturnsKey_WhenAmrIsExternal()
     {
         var userId = Guid.NewGuid();
-        var plainKey = GenerateBase64Key("auth-external-key");
-        await SeedUserAsync(userId, plainKey);
+        await SeedUserAsync(userId, _testKey);
 
         var token = JwtTestHelper.CreateToken(new JwtTokenOptions
         {
@@ -181,15 +180,14 @@ public class UserKeysControllerAuthIntegrationTests : IClassFixture<KeyConnector
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<UserKeyResponseModel>(TestContext.Current.CancellationToken);
-        Assert.Equal(plainKey, result.Key);
+        Assert.Equal(_testKey, result.Key);
     }
 
     [Fact]
     public async Task Get_ReturnsKey_WhenAudiencePresentButNotValidated()
     {
         var userId = Guid.NewGuid();
-        var plainKey = GenerateBase64Key("auth-audience-key");
-        await SeedUserAsync(userId, plainKey);
+        await SeedUserAsync(userId, _testKey);
 
         var token = JwtTestHelper.CreateToken(new JwtTokenOptions
         {
@@ -200,18 +198,13 @@ public class UserKeysControllerAuthIntegrationTests : IClassFixture<KeyConnector
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<UserKeyResponseModel>(TestContext.Current.CancellationToken);
-        Assert.Equal(plainKey, result.Key);
+        Assert.Equal(_testKey, result.Key);
     }
 
     private async Task SeedUserAsync(Guid userId, string plainKey)
     {
         var encryptedKey = await _cryptoService.AesEncryptToB64Async(plainKey);
         await _userKeyRepository.CreateAsync(new UserKeyModel { Id = userId, Key = encryptedKey });
-    }
-
-    private static string GenerateBase64Key(string label)
-    {
-        return Convert.ToBase64String(Encoding.UTF8.GetBytes(label));
     }
 
     private Task<HttpResponseMessage> SendGetWithToken(string token)
