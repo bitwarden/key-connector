@@ -32,7 +32,7 @@ public class UserKeysControllerIntegrationTests : IClassFixture<KeyConnectorWebA
     {
         var request = CreateRequest(HttpMethod.Get, Guid.NewGuid());
 
-        var response = await _client.SendAsync(request);
+        var response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -46,10 +46,10 @@ public class UserKeysControllerIntegrationTests : IClassFixture<KeyConnectorWebA
         await _userKeyRepository.CreateAsync(new UserKeyModel { Id = userId, Key = encryptedKey });
 
         var request = CreateRequest(HttpMethod.Get, userId);
-        var response = await _client.SendAsync(request);
+        var response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<UserKeyResponseModel>();
+        var result = await response.Content.ReadFromJsonAsync<UserKeyResponseModel>(TestContext.Current.CancellationToken);
         Assert.Equal(plainKey, result.Key);
     }
 
@@ -61,14 +61,14 @@ public class UserKeysControllerIntegrationTests : IClassFixture<KeyConnectorWebA
         var beforePost = DateTime.UtcNow;
 
         var postRequest = CreateRequest(HttpMethod.Post, userId, new { Key = key });
-        var postResponse = await _client.SendAsync(postRequest);
+        var postResponse = await _client.SendAsync(postRequest, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, postResponse.StatusCode);
 
         var getRequest = CreateRequest(HttpMethod.Get, userId);
-        var getResponse = await _client.SendAsync(getRequest);
+        var getResponse = await _client.SendAsync(getRequest, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
-        var result = await getResponse.Content.ReadFromJsonAsync<UserKeyResponseModel>();
+        var result = await getResponse.Content.ReadFromJsonAsync<UserKeyResponseModel>(TestContext.Current.CancellationToken);
         Assert.Equal(key, result.Key);
 
         var stored = await _userKeyRepository.ReadAsync(userId);
@@ -81,10 +81,10 @@ public class UserKeysControllerIntegrationTests : IClassFixture<KeyConnectorWebA
         var userId = Guid.NewGuid();
 
         var postRequest = CreateRequest(HttpMethod.Post, userId, new { Key = GenerateBase64Key("key1") });
-        await _client.SendAsync(postRequest);
+        await _client.SendAsync(postRequest, TestContext.Current.CancellationToken);
 
         var duplicateRequest = CreateRequest(HttpMethod.Post, userId, new { Key = GenerateBase64Key("key2") });
-        var response = await _client.SendAsync(duplicateRequest);
+        var response = await _client.SendAsync(duplicateRequest, TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -97,14 +97,14 @@ public class UserKeysControllerIntegrationTests : IClassFixture<KeyConnectorWebA
         var beforePut = DateTime.UtcNow;
 
         var putRequest = CreateRequest(HttpMethod.Put, userId, new { Key = key });
-        var putResponse = await _client.SendAsync(putRequest);
+        var putResponse = await _client.SendAsync(putRequest, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, putResponse.StatusCode);
 
         var getRequest = CreateRequest(HttpMethod.Get, userId);
-        var getResponse = await _client.SendAsync(getRequest);
+        var getResponse = await _client.SendAsync(getRequest, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
 
-        var result = await getResponse.Content.ReadFromJsonAsync<UserKeyResponseModel>();
+        var result = await getResponse.Content.ReadFromJsonAsync<UserKeyResponseModel>(TestContext.Current.CancellationToken);
         Assert.Equal(key, result.Key);
 
         var stored = await _userKeyRepository.ReadAsync(userId);
@@ -120,16 +120,16 @@ public class UserKeysControllerIntegrationTests : IClassFixture<KeyConnectorWebA
         var updatedKey = GenerateBase64Key("updated-key");
 
         var postRequest = CreateRequest(HttpMethod.Post, userId, new { Key = originalKey });
-        await _client.SendAsync(postRequest);
+        await _client.SendAsync(postRequest, TestContext.Current.CancellationToken);
 
         var beforePut = DateTime.UtcNow;
         var putRequest = CreateRequest(HttpMethod.Put, userId, new { Key = updatedKey });
-        var putResponse = await _client.SendAsync(putRequest);
+        var putResponse = await _client.SendAsync(putRequest, TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, putResponse.StatusCode);
 
         var getRequest = CreateRequest(HttpMethod.Get, userId);
-        var getResponse = await _client.SendAsync(getRequest);
-        var result = await getResponse.Content.ReadFromJsonAsync<UserKeyResponseModel>();
+        var getResponse = await _client.SendAsync(getRequest, TestContext.Current.CancellationToken);
+        var result = await getResponse.Content.ReadFromJsonAsync<UserKeyResponseModel>(TestContext.Current.CancellationToken);
         Assert.Equal(updatedKey, result.Key);
 
         var stored = await _userKeyRepository.ReadAsync(userId);
