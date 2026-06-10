@@ -22,7 +22,7 @@ public abstract class EfFixtureBase : IUserKeyRepositoryFixture
     protected abstract void RegisterDbContext(IServiceCollection services, KeyConnectorSettings settings);
     protected abstract KeyConnectorSettings.DatabaseSettings CreateDatabaseSettings();
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await StartInfrastructureAsync();
 
@@ -42,10 +42,10 @@ public abstract class EfFixtureBase : IUserKeyRepositoryFixture
         Repository = _serviceProvider.GetRequiredService<IUserKeyRepository>();
     }
 
-    public virtual Task DisposeAsync()
+    public virtual ValueTask DisposeAsync()
     {
         _serviceProvider?.Dispose();
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 }
 
@@ -70,14 +70,13 @@ public class SqliteFixture : EfFixtureBase
     protected override void RegisterDbContext(IServiceCollection services, KeyConnectorSettings settings) =>
         services.AddDbContext<DatabaseContext, SqliteDatabaseContext>();
 
-    public override Task DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
-        base.DisposeAsync();
+        await base.DisposeAsync();
         if (Directory.Exists(_tempDir))
         {
             Directory.Delete(_tempDir, true);
         }
-        return Task.CompletedTask;
     }
 }
 
@@ -93,7 +92,7 @@ public class SqlServerFixture : EfFixtureBase
     protected override void RegisterDbContext(IServiceCollection services, KeyConnectorSettings settings) =>
         services.AddDbContext<DatabaseContext, SqlServerDatabaseContext>();
 
-    public override async Task DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();
         await _container.DisposeAsync();
@@ -112,7 +111,7 @@ public class PostgreSqlFixture : EfFixtureBase
     protected override void RegisterDbContext(IServiceCollection services, KeyConnectorSettings settings) =>
         services.AddDbContext<DatabaseContext, PostgreSqlDatabaseContext>();
 
-    public override async Task DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();
         await _container.DisposeAsync();
@@ -131,7 +130,7 @@ public class MySqlFixture : EfFixtureBase
     protected override void RegisterDbContext(IServiceCollection services, KeyConnectorSettings settings) =>
         services.AddDbContext<DatabaseContext, MySqlDatabaseContext>();
 
-    public override async Task DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();
         await _container.DisposeAsync();
@@ -150,7 +149,7 @@ public class MariaDbFixture : EfFixtureBase
     protected override void RegisterDbContext(IServiceCollection services, KeyConnectorSettings settings) =>
         services.AddDbContext<DatabaseContext, MySqlDatabaseContext>();
 
-    public override async Task DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();
         await _container.DisposeAsync();

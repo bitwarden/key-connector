@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Bit.KeyConnector.Services.ClientFactories;
 using Microsoft.Extensions.Logging;
-using VaultSharp;
-using VaultSharp.V1.AuthMethods.Token;
 
 namespace Bit.KeyConnector.Services.CertificateProviders
 {
@@ -11,18 +10,22 @@ namespace Bit.KeyConnector.Services.CertificateProviders
     {
         private readonly KeyConnectorSettings _settings;
         private readonly ILogger<HashicorpVaultCertificateProviderService> _logger;
+        private readonly IHashicorpVaultClientFactory _vaultClientFactory;
 
-        public HashicorpVaultCertificateProviderService(KeyConnectorSettings settings, ILogger<HashicorpVaultCertificateProviderService> logger)
+        public HashicorpVaultCertificateProviderService(KeyConnectorSettings settings,
+            ILogger<HashicorpVaultCertificateProviderService> logger,
+            IHashicorpVaultClientFactory vaultClientFactory)
         {
             _settings = settings;
             _logger = logger;
+            _vaultClientFactory = vaultClientFactory;
         }
 
         public async Task<X509Certificate2> GetCertificateAsync()
         {
-            var authMethod = new TokenAuthMethodInfo(_settings.Certificate.VaultToken);
-            var vaultClientSettings = new VaultClientSettings(_settings.Certificate.VaultServerUri, authMethod);
-            var vaultClient = new VaultClient(vaultClientSettings);
+            var vaultClient = _vaultClientFactory.CreateClient(
+                _settings.Certificate.VaultServerUri,
+                _settings.Certificate.VaultToken);
 
             var mountPoint = string.IsNullOrWhiteSpace(_settings.Certificate.VaultSecretMountPoint) ?
                 null : _settings.Certificate.VaultSecretMountPoint;

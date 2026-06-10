@@ -11,7 +11,7 @@ public class MongoFixture : IUserKeyRepositoryFixture
 
     public IUserKeyRepository Repository { get; private set; }
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await _container.StartAsync();
 
@@ -27,7 +27,7 @@ public class MongoFixture : IUserKeyRepositoryFixture
         Repository = new Bit.KeyConnector.Repositories.Mongo.UserKeyRepository(settings);
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await _container.DisposeAsync();
     }

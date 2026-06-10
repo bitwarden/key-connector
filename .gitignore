@@ -160,6 +160,7 @@ ClientBin/
 *.dbmdl
 *.dbproj.schemaview
 *.pfx
+!test/KeyConnector.Tests/Resources/*.pfx
 *.publishsettings
 node_modules/
 bower_components/

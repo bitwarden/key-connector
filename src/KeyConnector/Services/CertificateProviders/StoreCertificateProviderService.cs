@@ -1,34 +1,34 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Bit.KeyConnector.Services.ClientFactories;
 
 namespace Bit.KeyConnector.Services.CertificateProviders
 {
     public class StoreCertificateProviderService : ICertificateProviderService
     {
         private readonly KeyConnectorSettings _settings;
+        private readonly IX509StoreFactory _storeFactory;
 
-        public StoreCertificateProviderService(KeyConnectorSettings settings)
+        public StoreCertificateProviderService(KeyConnectorSettings settings, IX509StoreFactory storeFactory)
         {
             _settings = settings;
+            _storeFactory = storeFactory;
         }
 
         public Task<X509Certificate2> GetCertificateAsync()
         {
             X509Certificate2 cert = null;
-            var certStore = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-            certStore.Open(OpenFlags.ReadOnly);
-            var certCollection = certStore.Certificates.Find(X509FindType.FindByThumbprint,
-                CleanThumbprint(_settings.Certificate.StoreThumbprint), false);
+            var certCollection = _storeFactory.FindByThumbprint(
+                CleanThumbprint(_settings.Certificate.StoreThumbprint));
             if (certCollection.Count > 0)
             {
                 cert = certCollection[0];
             }
-            certStore.Close();
             return Task.FromResult(cert);
         }
 
-        public static string CleanThumbprint(string thumbprint)
+        private static string CleanThumbprint(string thumbprint)
         {
             // Clean possible garbage characters from thumbprint copy/paste
             // ref http://stackoverflow.com/questions/8448147/problems-with-x509store-certificates-find-findbythumbprint
