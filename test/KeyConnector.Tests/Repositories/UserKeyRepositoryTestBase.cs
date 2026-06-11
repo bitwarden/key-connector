@@ -12,7 +12,6 @@ public static class ContainerImages
     public const string PostgreSql = "postgres:14";
     public const string MySql = "mysql:8";
     public const string MariaDb = "mariadb:10";
-    public const string Mongo = "mongo:7";
 }
 
 public interface IUserKeyRepositoryFixture : IAsyncLifetime
@@ -107,7 +106,7 @@ public abstract class UserKeyRepositoryTestBase<TFixture> : IClassFixture<TFixtu
         Assert.Contains(results, r => r.Id == item2.Id);
     }
 
-    // MongoDB stores DateTime with millisecond precision, truncating sub-millisecond ticks.
+    // Truncate to milliseconds so equality holds across all database providers regardless of their stored precision.
     private static DateTime TruncateToMilliseconds(DateTime dt) =>
         new(dt.Ticks - (dt.Ticks % TimeSpan.TicksPerMillisecond), dt.Kind);
 }

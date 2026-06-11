@@ -1,4 +1,5 @@
 ﻿using System;
+using Bit.KeyConnector.Exceptions;
 using Bit.KeyConnector.Models;
 using Bit.KeyConnector.Repositories;
 using Bit.KeyConnector.Services.CertificateProviders;
@@ -101,8 +102,10 @@ namespace Bit.KeyConnector
             }
             else if (databaseProvider == "mongo")
             {
-                services.AddSingleton<IApplicationDataRepository, Repositories.Mongo.ApplicationDataRepository>();
-                services.AddSingleton<IUserKeyRepository, Repositories.Mongo.UserKeyRepository>();
+                throw new UnsupportedDatabaseProviderException(
+                    "MongoDB is no longer a supported database provider for Key Connector. " +
+                    "Migrate your data to a supported database (sqlserver, postgresql, or mysql) " +
+                    "and update the 'keyConnectorSettings__database__provider' setting accordingly.");
             }
             else if (efDatabaseProvider)
             {
