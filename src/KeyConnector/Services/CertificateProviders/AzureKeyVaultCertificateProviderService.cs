@@ -39,7 +39,7 @@ namespace Bit.KeyConnector.Services.CertificateProviders
                     StringComparison.InvariantCultureIgnoreCase))
                 {
                     var pfxBytes = Convert.FromBase64String(secret.Value);
-                    return new X509Certificate2(pfxBytes);
+                    return X509CertificateLoader.LoadPkcs12(pfxBytes, null);
                 }
             }
             return null;
