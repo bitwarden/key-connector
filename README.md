@@ -11,4 +11,4 @@ Deploying Key Connector in your Bitwarden instance requires an Enterprise licens
 
 ## Developer Documentation
 
-Please refer to the [Key Connector section](https://contributing.bitwarden.com/getting-started/enterprise/key-connector) of the [Contributing Documentation](https://contributing.bitwarden.com/) for build instructions, recommended tooling, code style tips, and lots of other great information to get you started.
+Please refer to the [Key Connector section](https://contributing.bitwarden.com/getting-started/business/key-connector) of the [Contributing Documentation](https://contributing.bitwarden.com/) for build instructions, recommended tooling, code style tips, and lots of other great information to get you started.
