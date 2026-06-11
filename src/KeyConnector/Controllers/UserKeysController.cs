@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Bit.KeyConnector.Models;
 using Bit.KeyConnector.Repositories;
-using Bit.KeyConnector.Services;
+using Bit.KeyConnector.Services.Crypto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -74,16 +74,21 @@ namespace Bit.KeyConnector.Controllers
         {
             var userId = GetProperUserId().Value;
             var user = await _userKeyRepository.ReadAsync(userId);
-            if (user != null)
+            if (user == null)
             {
-                return new BadRequestResult();
+                user = new UserKeyModel
+                {
+                    Id = userId,
+                    Key = await _cryptoService.AesEncryptToB64Async(model.Key)
+                };
+                await _userKeyRepository.CreateAsync(user);
             }
-            user = new UserKeyModel
+            else
             {
-                Id = userId,
-                Key = await _cryptoService.AesEncryptToB64Async(model.Key)
-            };
-            await _userKeyRepository.UpdateAsync(user);
+                user.Key = await _cryptoService.AesEncryptToB64Async(model.Key);
+                user.RevisionDate = DateTime.UtcNow;
+                await _userKeyRepository.UpdateAsync(user);
+            }
             return new OkResult();
         }
 
