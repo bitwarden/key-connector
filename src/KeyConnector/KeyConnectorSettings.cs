@@ -86,9 +86,6 @@
             public string MySqlConnectionString { get; set; }
             // sqlite
             public string SqliteConnectionString { get; set; }
-            // mongo
-            public string MongoConnectionString { get; set; }
-            public string MongoDatabaseName { get; set; }
         }
 
         public class TransferToSettings
