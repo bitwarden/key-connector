@@ -52,7 +52,6 @@ jobs:
     permissions:
       id-token: write
       packages: write
-      security-events: write
     steps:
       - name: Check out repo
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -130,21 +129,6 @@ jobs:
             images+=("${tag}@${DIGEST}")
           done
           cosign sign --yes "${images[@]}"
-
-      - name: Scan Docker image
-        id: container-scan
-        uses: anchore/scan-action@a5605eb0943e46279cb4fbd9d44297355d3520ab # v7.0.2
-        with:
-          image: ${{ steps.image-name.outputs.name }}
-          fail-build: false
-          output-format: sarif
-
-      - name: Upload Grype results to GitHub
-        uses: github/codeql-action/upload-sarif@e296a935590eb16afc0c0108289f68c87e2a89a5 # v4.30.7
-        with:
-          sarif_file: ${{ steps.container-scan.outputs.sarif }}
-          sha: ${{ contains(github.event_name, 'pull_request') && github.event.pull_request.head.sha || github.sha }}
-          ref: ${{ contains(github.event_name, 'pull_request') && format('refs/pull/{0}/head', github.event.pull_request.number) || github.ref }}
 
       - name: Log out of Docker
         run: docker logout ghcr.io
