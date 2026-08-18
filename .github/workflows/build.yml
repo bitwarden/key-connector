@@ -102,6 +102,49 @@ jobs:
           mkdir -p src/KeyConnector/obj/build-output/publish
           unzip KeyConnector.zip -d src/KeyConnector/obj/build-output/publish
 
+      # metadata-action builds its `labels` and `annotations` outputs independently, each merging
+      # only its own input over the same generated defaults. Supplying just `labels` would leave
+      # the annotations at the raw defaults, so the custom set is built once here and fed to both.
+      #
+      # description/source/created/revision are left to the action's defaults: the repo description
+      # is already specific to this image, and the action resolves `revision` to the pull request
+      # head sha on PR events. The rest are set because the defaults are wrong here:
+      #   title    - defaults to the repo name ("key-connector")
+      #   url      - defaults to the repo URL, duplicating `source`. Per the OCI spec `url` is
+      #              "more information on the image", so it points at the product page instead.
+      #   licenses - defaults to the repo SPDX id, which GitHub reports as NOASSERTION. This repo
+      #              is entirely under the Bitwarden License (see LICENSE.txt), which is not on
+      #              the SPDX License List and so requires the LicenseRef- form.
+      #   version  - derived from the git ref, not the image tag resolved by the `tag` step
+      - name: Build custom image metadata
+        id: custom-meta
+        env:
+          IMAGE_TAG: ${{ steps.tag.outputs.image_tag }}
+        run: |
+          {
+            echo "items<<METADATA_EOF"
+            echo "org.opencontainers.image.title=Bitwarden Key Connector"
+            echo "org.opencontainers.image.vendor=Bitwarden Inc."
+            echo "org.opencontainers.image.url=https://bitwarden.com"
+            echo "org.opencontainers.image.licenses=LicenseRef-Bitwarden-License-1.0"
+            echo "org.opencontainers.image.version=${IMAGE_TAG}"
+            echo "com.bitwarden.project=key-connector"
+            echo "METADATA_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        env:
+          # Annotate the manifest list as well as the manifest. This build is single-platform, so
+          # an index only exists when buildx attaches provenance (i.e. on push, not on PR loads).
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: index,manifest
+        with:
+          # The tag comes from the `image-name` step; this action's `tags` output is unused.
+          images: ghcr.io/bitwarden/key-connector
+          labels: ${{ steps.custom-meta.outputs.items }}
+          annotations: ${{ steps.custom-meta.outputs.items }}
+
       - name: Build Docker image
         id: build-docker
         uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
@@ -112,6 +155,8 @@ jobs:
           load: ${{ github.event_name == 'pull_request' }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.image-name.outputs.name }}
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
 
       - name: Install Cosign
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
