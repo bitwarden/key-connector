@@ -52,6 +52,8 @@ jobs:
     permissions:
       id-token: write
       packages: write
+    env:
+      _IMAGE_NAME: ghcr.io/bitwarden/key-connector
     steps:
       - name: Check out repo
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -64,6 +66,9 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
 
       - name: Generate Docker image tag
         id: tag
@@ -90,7 +95,7 @@ jobs:
         id: image-name
         env:
           IMAGE_TAG: ${{ steps.tag.outputs.image_tag }}
-        run: echo "name=ghcr.io/bitwarden/key-connector:${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+        run: echo "name=${_IMAGE_NAME}:${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Get build artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -122,9 +127,9 @@ jobs:
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         env:
-          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
         with:
-          images: ghcr.io/bitwarden/key-connector
+          images: ${{ env._IMAGE_NAME }}
           labels: ${{ steps.custom-meta.outputs.items }}
           annotations: ${{ steps.custom-meta.outputs.items }}
 
@@ -135,11 +140,11 @@ jobs:
           context: src/KeyConnector
           file: src/KeyConnector/Dockerfile
           platforms: linux/amd64
-          load: ${{ github.event_name == 'pull_request' }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.image-name.outputs.name }}
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
+          provenance: mode=max
 
       - name: Install Cosign
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
