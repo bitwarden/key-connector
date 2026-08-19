@@ -122,8 +122,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         env:
-          # Annotate the manifest list as well as the manifest
-          DOCKER_METADATA_ANNOTATIONS_LEVELS: index,manifest
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest
         with:
           images: ghcr.io/bitwarden/key-connector
           labels: ${{ steps.custom-meta.outputs.items }}
