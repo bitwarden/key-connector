@@ -50,52 +50,74 @@ jobs:
     runs-on: ubuntu-24.04
     needs: build-artifacts
     permissions:
+      contents: read
       id-token: write
       packages: write
     env:
-      _IMAGE_NAME: ghcr.io/bitwarden/key-connector
+      _AZ_REGISTRY: bitwardenprod.azurecr.io
+      _GHCR_REGISTRY: ghcr.io/bitwarden
+      _PROJECT_NAME: key-connector
     steps:
+      - name: Check secrets
+        id: check-secrets
+        run: |
+          has_secrets=${{ secrets.AZURE_CLIENT_ID != '' }}
+          echo "has_secrets=$has_secrets" >> "$GITHUB_OUTPUT"
+
       - name: Check out repo
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
 
-      - name: Login to GitHub Container Registry
+      - name: Log in to GHCR
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Log in to Azure
+        if: steps.check-secrets.outputs.has_secrets == 'true'
+        uses: bitwarden/gh-actions/azure-login@main
+        with:
+          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+          client_id: ${{ secrets.AZURE_CLIENT_ID }}
+
+      - name: Log in to ACR
+        if: steps.check-secrets.outputs.has_secrets == 'true'
+        run: az acr login -n bitwardenprod
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
 
       - name: Generate Docker image tag
         id: tag
-        run: |
-          # Tags use the tag name as the image tag (strip leading 'v')
-          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
-            IMAGE_TAG="${GITHUB_REF#refs/tags/v}"
-          # Main branch always uses 'dev' tag
-          elif [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
-            IMAGE_TAG=dev
-          # PRs use 'pr-<number>' format for consistency
-          elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-            IMAGE_TAG="pr-${{ github.event.pull_request.number }}"
-          # Other branches: sanitize name for Docker tag compatibility
-          else
-            # Extract branch name from refs
-            IMAGE_TAG="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
-            # Lowercase, replace invalid chars with dash, collapse dashes, trim, limit to 128 chars, remove trailing separators
-            IMAGE_TAG=$(echo "$IMAGE_TAG" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9._-]+/-/g; s/-+/-/g; s/^-+|-+$//g' | cut -c1-128 | sed -E 's/[.-]$//')
-          fi
-          echo "image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+        uses: bitwarden/gh-actions/sanitize-image-tag@main
+        with:
+          ref: ${{ github.head_ref || github.ref }}
+          fork_repo: ${{ github.event.pull_request.head.repo.fork == true && github.event.pull_request.head.repo.full_name || '' }}
 
-      - name: Generate full image name
-        id: image-name
+      - name: Report Docker image tag
         env:
-          IMAGE_TAG: ${{ steps.tag.outputs.image_tag }}
-        run: echo "name=${_IMAGE_NAME}:${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          echo "### :mega: Docker Image Tag: $IMAGE_TAG" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Generate image tag(s)
+        id: image-tags
+        env:
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          # Always push to ACR
+          TAGS="${_AZ_REGISTRY}/${_PROJECT_NAME}:${IMAGE_TAG}"
+
+          # Additionally push dev and version tags to GHCR, which is what self-hosted installations pull from
+          if [[ "$GITHUB_REF" == "refs/heads/main" || "$GITHUB_REF" == refs/tags/v* ]]; then
+            TAGS=$TAGS",${_GHCR_REGISTRY}/${_PROJECT_NAME}:${IMAGE_TAG}"
+          fi
+
+          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
 
       - name: Get build artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -110,7 +132,8 @@ jobs:
       - name: Build custom image metadata
         id: custom-meta
         env:
-          IMAGE_TAG: ${{ steps.tag.outputs.image_tag }}
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+          REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           {
             echo "items<<METADATA_EOF"
@@ -119,7 +142,8 @@ jobs:
             echo "org.opencontainers.image.url=https://bitwarden.com"
             echo "org.opencontainers.image.licenses=LicenseRef-Bitwarden-License-1.0"
             echo "org.opencontainers.image.version=${IMAGE_TAG}"
-            echo "com.bitwarden.project=key-connector"
+            echo "org.opencontainers.image.revision=${REVISION}"
+            echo "com.bitwarden.project=${_PROJECT_NAME}"
             echo "METADATA_EOF"
           } >> "$GITHUB_OUTPUT"
 
@@ -127,9 +151,8 @@ jobs:
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         env:
-          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: index,manifest
         with:
-          images: ${{ env._IMAGE_NAME }}
           labels: ${{ steps.custom-meta.outputs.items }}
           annotations: ${{ steps.custom-meta.outputs.items }}
 
@@ -140,21 +163,21 @@ jobs:
           context: src/KeyConnector
           file: src/KeyConnector/Dockerfile
           platforms: linux/amd64
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.image-name.outputs.name }}
+          push: ${{ steps.check-secrets.outputs.has_secrets == 'true' }}
+          tags: ${{ steps.image-tags.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
           provenance: mode=max
 
       - name: Install Cosign
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
 
       - name: Sign image with Cosign
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         env:
           DIGEST: ${{ steps.build-docker.outputs.digest }}
-          TAGS: ${{ steps.image-name.outputs.name }}
+          TAGS: ${{ steps.image-tags.outputs.tags }}
         run: |
           IFS=',' read -r -a tags_array <<< "${TAGS}"
           images=()
@@ -165,3 +188,7 @@ jobs:
 
       - name: Log out of Docker
         run: docker logout ghcr.io
+
+      - name: Log out from Azure
+        if: steps.check-secrets.outputs.has_secrets == 'true'
+        uses: bitwarden/gh-actions/azure-logout@main
