@@ -54,16 +54,9 @@ jobs:
       id-token: write
       packages: write
     env:
-      _AZ_REGISTRY: bitwardenprod.azurecr.io
       _GHCR_REGISTRY: ghcr.io/bitwarden
       _PROJECT_NAME: key-connector
     steps:
-      - name: Check secrets
-        id: check-secrets
-        run: |
-          has_secrets=${{ secrets.AZURE_CLIENT_ID != '' }}
-          echo "has_secrets=$has_secrets" >> "$GITHUB_OUTPUT"
-
       - name: Check out repo
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
@@ -75,18 +68,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Log in to Azure
-        if: steps.check-secrets.outputs.has_secrets == 'true'
-        uses: bitwarden/gh-actions/azure-login@main
-        with:
-          subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          tenant_id: ${{ secrets.AZURE_TENANT_ID }}
-          client_id: ${{ secrets.AZURE_CLIENT_ID }}
-
-      - name: Log in to ACR
-        if: steps.check-secrets.outputs.has_secrets == 'true'
-        run: az acr login -n bitwardenprod
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
@@ -109,15 +90,7 @@ jobs:
         env:
           IMAGE_TAG: ${{ steps.tag.outputs.tag }}
         run: |
-          # Always push to ACR
-          TAGS="${_AZ_REGISTRY}/${_PROJECT_NAME}:${IMAGE_TAG}"
-
-          # Additionally push dev and version tags to GHCR, which is what self-hosted installations pull from
-          if [[ "$GITHUB_REF" == "refs/heads/main" || "$GITHUB_REF" == refs/tags/v* ]]; then
-            TAGS=$TAGS",${_GHCR_REGISTRY}/${_PROJECT_NAME}:${IMAGE_TAG}"
-          fi
-
-          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
+          echo "tags=${_GHCR_REGISTRY}/${_PROJECT_NAME}:${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Get build artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -163,7 +136,7 @@ jobs:
           context: src/KeyConnector
           file: src/KeyConnector/Dockerfile
           platforms: linux/amd64
-          push: ${{ steps.check-secrets.outputs.has_secrets == 'true' }}
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.image-tags.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
@@ -188,7 +161,3 @@ jobs:
 
       - name: Log out of Docker
         run: docker logout ghcr.io
-
-      - name: Log out from Azure
-        if: steps.check-secrets.outputs.has_secrets == 'true'
-        uses: bitwarden/gh-actions/azure-logout@main
