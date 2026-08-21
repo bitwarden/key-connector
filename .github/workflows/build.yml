@@ -113,7 +113,6 @@ jobs:
             echo "org.opencontainers.image.title=Bitwarden Key Connector"
             echo "org.opencontainers.image.vendor=Bitwarden Inc."
             echo "org.opencontainers.image.url=https://bitwarden.com"
-            echo "org.opencontainers.image.licenses=LicenseRef-Bitwarden-License-1.0"
             echo "org.opencontainers.image.version=${IMAGE_TAG}"
             echo "org.opencontainers.image.revision=${REVISION}"
             echo "com.bitwarden.project=${_PROJECT_NAME}"
