@@ -23,7 +23,7 @@ RUN curl --proto "=https" -fsSLO "https://developers.yubico.com/YubiHSM2/Release
     && apt-get install -y -f --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-ENV ASPNETCORE_URLS http://+:5000
+ENV ASPNETCORE_URLS=http://+:5000
 WORKDIR /app
 EXPOSE 5000
 
