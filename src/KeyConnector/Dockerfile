@@ -10,10 +10,13 @@ RUN apt-get update \
     opensc=0.25.0* \
     && rm -rf /var/lib/apt/lists/*
 
-# Install YubiHSM2 SDK
-RUN curl -O https://developers.yubico.com/YubiHSM2/Releases/yubihsm2-sdk-2023-11-debian12-amd64.tar.gz \
-    && tar -xzf yubihsm2-sdk-*.tar.gz \
-    && rm yubihsm2-sdk-*.tar.gz \
+# Install YubiHSM2 SDK, pinned by SHA-256 (taken from a tarball whose Yubico GPG signature verified)
+ARG YUBIHSM_SDK_TARBALL=yubihsm2-sdk-2023-11-debian12-amd64.tar.gz
+ARG YUBIHSM_SDK_SHA256=72c5159480cb518d1c391207b4d239661e0a40f297c08d43837f3fbf075223d4
+RUN curl --proto "=https" -fsSLO "https://developers.yubico.com/YubiHSM2/Releases/${YUBIHSM_SDK_TARBALL}" \
+    && echo "${YUBIHSM_SDK_SHA256}  ${YUBIHSM_SDK_TARBALL}" | sha256sum -c - \
+    && tar -xzf "${YUBIHSM_SDK_TARBALL}" \
+    && rm "${YUBIHSM_SDK_TARBALL}" \
     && dpkg -i yubihsm2-sdk/libyubihsm-http1_*_amd64.deb \
     && dpkg -i yubihsm2-sdk/libyubihsm1_*_amd64.deb \
     && dpkg -i yubihsm2-sdk/yubihsm-pkcs11_*_amd64.deb \
